@@ -1,8 +1,7 @@
 package com.company.SafarSaathi.auth_service.controller;
 
-import com.company.SafarSaathi.auth_service.dtos.LoginRequestDto;
-import com.company.SafarSaathi.auth_service.dtos.SignupRequestDto;
-import com.company.SafarSaathi.auth_service.dtos.UserProfileCreateRequest;
+import com.company.SafarSaathi.auth_service.dtos.request.LoginRequestDto;
+import com.company.SafarSaathi.auth_service.dtos.request.SignupRequestDto;
 import com.company.SafarSaathi.auth_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

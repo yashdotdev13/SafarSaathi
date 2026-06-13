@@ -1,7 +1,8 @@
 package com.company.SafarSaathi.auth_service.service;
 
 import com.company.SafarSaathi.auth_service.client.UserServiceClient;
-import com.company.SafarSaathi.auth_service.dtos.*;
+import com.company.SafarSaathi.auth_service.dtos.request.LoginRequestDto;
+import com.company.SafarSaathi.auth_service.dtos.request.SignupRequestDto;
 import com.company.SafarSaathi.auth_service.entities.User;
 import com.company.SafarSaathi.auth_service.enums.Role;
 import com.company.SafarSaathi.auth_service.repository.UserRepository;
