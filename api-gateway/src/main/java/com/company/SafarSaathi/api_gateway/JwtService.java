@@ -33,6 +33,6 @@ public class JwtService {
             throw new RuntimeException("Missing userId claim in JWT");
         }
 
-        return userIdObj.toString();  // Return the actual userId claim
+        return userIdObj.toString();
     }
 }
