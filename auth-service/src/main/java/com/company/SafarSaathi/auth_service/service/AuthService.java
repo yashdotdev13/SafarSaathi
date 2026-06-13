@@ -4,8 +4,6 @@ import com.company.SafarSaathi.auth_service.client.UserServiceClient;
 import com.company.SafarSaathi.auth_service.dtos.*;
 import com.company.SafarSaathi.auth_service.entities.User;
 import com.company.SafarSaathi.auth_service.enums.Role;
-import com.company.SafarSaathi.auth_service.exceptions.BadRequestException;
-import com.company.SafarSaathi.auth_service.exceptions.ResourceNotFoundException;
 import com.company.SafarSaathi.auth_service.repository.UserRepository;
 import com.company.SafarSaathi.auth_service.utils.PasswordUtils;
 import lombok.RequiredArgsConstructor;
