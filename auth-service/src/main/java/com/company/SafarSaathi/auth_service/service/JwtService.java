@@ -1,69 +1,92 @@
 package com.company.SafarSaathi.auth_service.service;
 
-
-
 import com.company.SafarSaathi.auth_service.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class JwtService {
 
-
     @Value("${jwt.secretKey}")
     private String jwtSecretKey;
 
-    private SecretKey getSecretKey(){
-        return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey =
+                Keys.hmacShaKeyFor(
+                        jwtSecretKey.getBytes(StandardCharsets.UTF_8)
+                );
     }
 
     public String generateAccessToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getId());
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(user.getId().toString())
+                .subject(user.getId().toString())
+                .claim("userId", user.getId())
                 .claim("email", user.getEmail())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))  // 10 minutes
-                .signWith(getSecretKey())
+                .claim("role", user.getRole().name())
+                .issuedAt(new Date())
+                .expiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + (1000 * 60 * 10)
+                        )
+                )
+                .signWith(secretKey)
                 .compact();
     }
 
-
-    private Long getUserIdFromToken(String token){
-        Claims claims = Jwts.parser()
-                .setSigningKey(getSecretKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return Long.valueOf(claims.getSubject());
-    }
-
     public Claims extractAllClaims(String token) {
+
         return Jwts.parser()
-                .setSigningKey(getSecretKey())
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    // Extract userId from token (from 'userId' claim, NOT subject)
     public Long extractUserId(String token) {
-        Claims claims = extractAllClaims(token);
-        return claims.get("userId", Long.class);
+
+        return extractAllClaims(token)
+                .get("userId", Long.class);
     }
 
+    public String extractEmail(String token) {
 
+        return extractAllClaims(token)
+                .get("email", String.class);
+    }
+
+    public String extractRole(String token) {
+
+        return extractAllClaims(token)
+                .get("role", String.class);
+    }
+
+    public boolean isTokenExpired(String token) {
+
+        return extractAllClaims(token)
+                .getExpiration()
+                .before(new Date());
+    }
+
+    public boolean isValidToken(String token) {
+
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 }
+
