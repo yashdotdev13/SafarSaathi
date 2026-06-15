@@ -1,27 +1,19 @@
 package com.company.SafarSaathi.user_service.exceptions;
 
 
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
-
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class ApiError {
 
-    private LocalDateTime timeStamp;
+    private LocalDateTime timestamp;
+    private int status;
     private String error;
-    private HttpStatus statusCode;
+    private String message;
 
-
-    public ApiError(){
-        this.timeStamp = LocalDateTime.now();
-    }
-
-    public ApiError(String error, HttpStatus statusCode){
-        this();
-        this.error = error;
-        this.statusCode = statusCode;
-    }
+    private String path;
 
 }
