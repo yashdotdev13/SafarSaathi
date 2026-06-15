@@ -1,6 +1,8 @@
 package com.company.SafarSaathi.user_service.service;
 
 import com.company.SafarSaathi.user_service.auth.UserContextHolder;
+import com.company.SafarSaathi.user_service.dtos.request.UpdateUserProfileRequest;
+import com.company.SafarSaathi.user_service.dtos.response.UserProfileResponse;
 import com.company.SafarSaathi.user_service.entities.User;
 import com.company.SafarSaathi.user_service.exceptions.ResourceNotFoundException;
 import com.company.SafarSaathi.user_service.repository.UserRepository;
@@ -18,29 +20,25 @@ public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    // ✅ Get current user (from JWT/X-User-Id header)
-    public UserProfileCreateRequest getCurrentUserProfile() {
+    public UserProfileResponse getCurrentUserProfile() {
         Long userId = UserContextHolder.getCurrentUserId();
         log.info("Fetching current user with ID: {}", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-
-        return modelMapper.map(user, UserProfileCreateRequest.class);
+        return modelMapper.map(user, UserProfileResponse.class);
     }
 
-    // ✅ Get any user by userId (for matching-service or others)
-    public UserProfileCreateRequest getUserById(Long userId) {
+    public UserProfileResponse getUserById(Long userId) {
         log.info("Fetching user by ID: {}", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        return modelMapper.map(user, UserProfileCreateRequest.class);
+        return modelMapper.map(user, UserProfileResponse.class);
     }
 
-    // ✅ Update current user (from JWT)
-    public UserProfileCreateRequest updateUser(UpdateUserRequest request) {
+    public UserProfileResponse updateUser(UpdateUserProfileRequest request) {
         Long userId = UserContextHolder.getCurrentUserId();
         log.info("Updating user with ID: {}", userId);
 
@@ -62,14 +60,6 @@ public class UserService {
         user.setProfileImageUrl(request.getProfileImageUrl());
 
         User updatedUser = userRepository.save(user);
-        return modelMapper.map(updatedUser, UserProfileCreateRequest.class);
-    }
-
-    // ✅ Create user profile (called from auth-service on signup)
-    public UserProfileCreateRequest createUser(UserProfileCreateRequest userDto) {
-        log.info("Creating user with ID: {}", userDto.getUserId());
-        User user = modelMapper.map(userDto, User.class);
-        User saved = userRepository.save(user);
-        return modelMapper.map(saved, UserProfileCreateRequest.class);
+        return modelMapper.map(updatedUser, UserProfileResponse.class);
     }
 }
