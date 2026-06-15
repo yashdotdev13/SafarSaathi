@@ -1,0 +1,19 @@
+package com.company.SafarSaathi.common.enums;
+
+public enum EventType {
+
+    USER_REGISTERED,
+    USER_PROFILE_CREATED,
+
+    TRIP_CREATED,
+    TRIP_UPDATED,
+
+
+    COMPANION_REQUEST_SENT,
+    COMPANION_REQUEST_ACCEPTED,
+
+
+    MATCH_FOUND,
+
+    NOTIFICATION_SENT
+}
