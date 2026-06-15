@@ -4,6 +4,7 @@ import com.company.SafarSaathi.user_service.dtos.request.UpdateUserProfileReques
 import com.company.SafarSaathi.user_service.dtos.response.UserProfileResponse;
 import com.company.SafarSaathi.user_service.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,7 @@ public class UserController {
 
     @GetMapping("/profile/{userId}")
     public ResponseEntity<UserProfileResponse> getUserProfileById(
+            @Positive(message = "User ID must be positive")
             @PathVariable Long userId
     ) {
 
