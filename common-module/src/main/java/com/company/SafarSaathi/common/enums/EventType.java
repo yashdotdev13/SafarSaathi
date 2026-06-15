@@ -1,4 +1,4 @@
-package enums;
+package com.company.SafarSaathi.common.enums;
 
 public enum EventType {
 

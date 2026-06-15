@@ -1,4 +1,4 @@
-package constants;
+package com.company.SafarSaathi.common.constants;
 
 
 public final class KafkaTopics {
