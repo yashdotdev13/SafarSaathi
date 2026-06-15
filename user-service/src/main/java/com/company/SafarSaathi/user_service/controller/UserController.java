@@ -1,8 +1,6 @@
 package com.company.SafarSaathi.user_service.controller;
 
 
-import com.company.SafarSaathi.user_service.dtos.UpdateUserRequest;
-import com.company.SafarSaathi.user_service.dtos.UserProfileCreateRequest;
 import com.company.SafarSaathi.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

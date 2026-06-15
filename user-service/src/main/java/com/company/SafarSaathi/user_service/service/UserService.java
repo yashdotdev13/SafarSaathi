@@ -1,8 +1,6 @@
 package com.company.SafarSaathi.user_service.service;
 
 import com.company.SafarSaathi.user_service.auth.UserContextHolder;
-import com.company.SafarSaathi.user_service.dtos.UpdateUserRequest;
-import com.company.SafarSaathi.user_service.dtos.UserProfileCreateRequest;
 import com.company.SafarSaathi.user_service.entities.User;
 import com.company.SafarSaathi.user_service.exceptions.ResourceNotFoundException;
 import com.company.SafarSaathi.user_service.repository.UserRepository;
