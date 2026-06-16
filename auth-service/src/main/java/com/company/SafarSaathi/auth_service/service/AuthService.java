@@ -9,8 +9,10 @@ import com.company.SafarSaathi.auth_service.enums.Role;
 import com.company.SafarSaathi.auth_service.exceptions.InvalidCredentialsException;
 import com.company.SafarSaathi.auth_service.exceptions.ResourceNotFoundException;
 import com.company.SafarSaathi.auth_service.exceptions.UserAlreadyExistsException;
+import com.company.SafarSaathi.auth_service.kafka.UserEventProducer;
 import com.company.SafarSaathi.auth_service.repository.UserRepository;
 import com.company.SafarSaathi.auth_service.utils.PasswordUtils;
+import com.company.SafarSaathi.common.events.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final UserEventProducer userEventProducer;
 
     public SignupResponseDto signUp(SignupRequestDto signupRequestDto) {
 
@@ -44,6 +47,15 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        UserRegisteredEvent event =
+                UserRegisteredEvent.builder()
+                        .userId(savedUser.getId())
+                        .fullName(savedUser.getFullName())
+                        .email(savedUser.getEmail())
+                        .build();
+
+        userEventProducer.publishUserRegisteredEvent(event);
 
         String accessToken =
                 jwtService.generateAccessToken(savedUser);

@@ -13,5 +13,5 @@ public class UserRegisteredEvent {
     private Long userId;
     private String fullName;
 
-    private String path;
+    private String email;
 }
