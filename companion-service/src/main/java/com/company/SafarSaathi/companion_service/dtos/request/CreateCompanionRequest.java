@@ -2,11 +2,12 @@ package com.company.SafarSaathi.companion_service.dtos.request;
 
 
 import com.company.SafarSaathi.companion_service.enums.CompanionStatus;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
+
 
 @Data
 @AllArgsConstructor
