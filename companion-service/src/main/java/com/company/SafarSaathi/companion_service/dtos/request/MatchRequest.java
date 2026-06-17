@@ -1,6 +1,10 @@
-package com.company.SafarSaathi.companion_service.dtos;
+package com.company.SafarSaathi.companion_service.dtos.request;
 
 
+import com.company.SafarSaathi.companion_service.dtos.CandidateProfile;
+import com.company.SafarSaathi.companion_service.dtos.CompanionPreferenceDto;
+import com.company.SafarSaathi.companion_service.dtos.TripDto;
+import com.company.SafarSaathi.companion_service.dtos.UserProfileCreateRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -3,6 +3,8 @@ package com.company.SafarSaathi.companion_service.service;
 
 import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
 import com.company.SafarSaathi.companion_service.dtos.*;
+import com.company.SafarSaathi.companion_service.dtos.request.CreateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.UpdateCompanionRequest;
 import com.company.SafarSaathi.companion_service.entity.Companion;
 import com.company.SafarSaathi.companion_service.exceptions.BadRequestException;
 import com.company.SafarSaathi.companion_service.exceptions.ResourceNotFoundException;

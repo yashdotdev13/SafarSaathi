@@ -3,6 +3,8 @@ package com.company.SafarSaathi.companion_service.controller;
 
 import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
 import com.company.SafarSaathi.companion_service.dtos.*;
+import com.company.SafarSaathi.companion_service.dtos.request.CreateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.UpdateCompanionRequest;
 import com.company.SafarSaathi.companion_service.entity.CompanionPreference;
 import com.company.SafarSaathi.companion_service.service.CompanionPreferenceService;
 import com.company.SafarSaathi.companion_service.service.CompanionRequestService;
