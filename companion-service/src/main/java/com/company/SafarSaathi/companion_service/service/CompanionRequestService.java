@@ -1,8 +1,6 @@
 package com.company.SafarSaathi.companion_service.service;
 
 import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
-import com.company.SafarSaathi.companion_service.dtos.CompanionRequestDto;
-import com.company.SafarSaathi.companion_service.dtos.CompanionRequestResponseDto;
 import com.company.SafarSaathi.companion_service.dtos.NotificationEvent;
 import com.company.SafarSaathi.companion_service.entity.CompanionRequest;
 import com.company.SafarSaathi.companion_service.enums.RequestStatus;

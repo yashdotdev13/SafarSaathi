@@ -1,4 +1,4 @@
-package com.company.SafarSaathi.companion_service.dtos;
+package com.company.SafarSaathi.common.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
