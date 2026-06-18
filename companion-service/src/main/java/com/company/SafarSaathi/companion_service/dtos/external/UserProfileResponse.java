@@ -1,5 +1,4 @@
-package com.company.SafarSaathi.user_service.dtos.response;
-
+package com.company.SafarSaathi.companion_service.dtos.external;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,6 +2,8 @@ package com.company.SafarSaathi.companion_service.service;
 
 import com.company.SafarSaathi.common.events.NotificationEvent;
 import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
+import com.company.SafarSaathi.companion_service.client.UserServiceClient;
+import com.company.SafarSaathi.companion_service.dtos.external.UserProfileResponse;
 import com.company.SafarSaathi.companion_service.dtos.request.SendCompanionRequest;
 import com.company.SafarSaathi.companion_service.dtos.response.CompanionRequestResponse;
 import com.company.SafarSaathi.companion_service.entity.CompanionRequest;
@@ -27,6 +29,7 @@ public class CompanionRequestService {
     private final ModelMapper modelMapper;
     private final NotificationEventProducer notificationEventProducer;
     private final RequestGraphService requestGraphService;
+    private final UserServiceClient userServiceClient;
 
     public CompanionRequestResponse sendRequest(
             SendCompanionRequest requestDto
@@ -58,32 +61,62 @@ public class CompanionRequestService {
                     );
                 });
 
+        // Validate receiver exists
+        UserProfileResponse receiverProfile;
+
+        try {
+
+            receiverProfile =
+                    userServiceClient.getUserProfile(
+                            requestDto.getReceiverId()
+                    );
+
+        } catch (Exception ex) {
+
+            log.error(
+                    "Unable to fetch receiver profile. receiverId={}",
+                    requestDto.getReceiverId(),
+                    ex
+            );
+
+            throw new ResourceNotFoundException(
+                    "Receiver user does not exist"
+            );
+        }
+
         CompanionRequest companionRequest =
                 CompanionRequest.builder()
                         .senderId(senderId)
                         .receiverId(requestDto.getReceiverId())
                         .tripId(requestDto.getTripId())
-                        .status(RequestStatus.PENDING)
                         .message(requestDto.getMessage())
+                        .status(RequestStatus.PENDING)
                         .build();
 
         CompanionRequest savedRequest =
-                companionRequestRepository.save(companionRequest);
+                companionRequestRepository.save(
+                        companionRequest
+                );
 
         log.info(
                 "Companion request created successfully. requestId={}",
                 savedRequest.getId()
         );
 
-        NotificationEvent event = NotificationEvent.builder()
-                .userId(requestDto.getReceiverId().toString())
-                .type("REQUEST_RECEIVED")
-                .message(
-                        "You have received a companion request for trip "
-                                + requestDto.getTripId()
-                )
-                .email("harshgarg5907@gmail.com")
-                .build();
+        NotificationEvent event =
+                NotificationEvent.builder()
+                        .userId(
+                                receiverProfile.getUserId().toString()
+                        )
+                        .email(
+                                receiverProfile.getEmail()
+                        )
+                        .type("REQUEST_RECEIVED")
+                        .message(
+                                "You have received a companion request for trip "
+                                        + requestDto.getTripId()
+                        )
+                        .build();
 
         notificationEventProducer.sendNotification(event);
 
