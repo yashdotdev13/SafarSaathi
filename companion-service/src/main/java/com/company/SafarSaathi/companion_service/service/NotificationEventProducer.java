@@ -1,6 +1,6 @@
 package com.company.SafarSaathi.companion_service.service;
 
-import com.company.SafarSaathi.companion_service.dtos.NotificationEvent;
+import com.company.SafarSaathi.common.events.NotificationEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,4 +24,5 @@ public class NotificationEventProducer {
             log.error("❌ Failed to send notification event", e);
         }
     }
+
 }
