@@ -44,7 +44,7 @@ spring:
         - id: companion-service
           uri: lb://companion-service
           predicates:
-            - Path=/api/v2/companion/**
+            - Path=/api/v1/companions/**
           filters:
             - StripPrefix=2
             - name: AuthenticationFilter
@@ -63,7 +63,7 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/v4/users/**
+            - Path=/api/v1/users/**
           filters:
             - StripPrefix=2
             - name: AuthenticationFilter
