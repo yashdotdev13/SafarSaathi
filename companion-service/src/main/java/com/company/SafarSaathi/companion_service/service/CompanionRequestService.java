@@ -28,7 +28,6 @@ public class CompanionRequestService {
     private final CompanionRequestRepository companionRequestRepository;
     private final ModelMapper modelMapper;
     private final NotificationEventProducer notificationEventProducer;
-    private final RequestGraphService requestGraphService;
     private final UserServiceClient userServiceClient;
 
     public CompanionRequestResponse sendRequest(
@@ -120,12 +119,6 @@ public class CompanionRequestService {
 
         notificationEventProducer.sendNotification(event);
 
-        requestGraphService.saveRequestToGraph(
-                senderId,
-                requestDto.getReceiverId(),
-                requestDto.getTripId(),
-                RequestStatus.PENDING.name()
-        );
 
         return modelMapper.map(
                 savedRequest,
