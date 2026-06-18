@@ -1,8 +1,9 @@
 package com.company.SafarSaathi.companion_service.service;
 
-
 import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
-import com.company.SafarSaathi.companion_service.dtos.*;
+import com.company.SafarSaathi.companion_service.dtos.request.CreateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.UpdateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.response.CompanionResponse;
 import com.company.SafarSaathi.companion_service.entity.Companion;
 import com.company.SafarSaathi.companion_service.exceptions.BadRequestException;
 import com.company.SafarSaathi.companion_service.exceptions.ResourceNotFoundException;
@@ -11,95 +12,174 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class CompanionService {
-
 
     private final CompanionRepository companionRepository;
     private final ModelMapper modelMapper;
 
+    public CompanionResponse createCompanion(
+            CreateCompanionRequest request
+    ) {
 
-    public CompanionDto createCompanion(CreateCompanionRequest dto) {
         Long userId = UserContextHolder.getCurrentUserId();
-        log.info("Creating companion for userId: {}", userId);
 
-        Companion companion = new Companion();
-        companion.setUserId(userId);
-        companion.setTripId(dto.getTripId());
-        companion.setStatus(dto.getStatus());
-        companion.setMessage(dto.getMessage());
+        log.info("Creating companion profile for userId={}", userId);
 
-        Companion saved = companionRepository.save(companion);
-        log.info("Companion created with ID: {}", saved.getId());
-
-        return modelMapper.map(saved, CompanionDto.class);
-    }
-
-
-    public CompanionDto updateCompanion(Long id, UpdateCompanionRequest dto) {
-        Long userId = UserContextHolder.getCurrentUserId();
-        log.info("Updating companion ID: {} by userId: {}", id, userId);
-
-        Companion existing = companionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Companion not found with id: " +userId));
-
-        if (!existing.getUserId().equals(userId)) {
-            throw new BadRequestException("You are not allowed to update this companion request");
-        }
-
-        if (dto.getTripId() != null) existing.setTripId(dto.getTripId());
-        if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
-        if (dto.getMessage() != null) existing.setMessage(dto.getMessage());
-
-        Companion updated = companionRepository.save(existing);
-        log.info("Companion ID: {} updated", updated.getId());
-
-        CompanionDto companionDto = CompanionDto.builder()
-                .id(updated.getId())
-                .tripId(updated.getTripId())
-                .userId(updated.getUserId())
-                .status(updated.getStatus())
-                .message(updated.getMessage())
-                .matchedUserIds(new HashSet<>(updated.getMatchedUserIds()))
+        Companion companion = Companion.builder()
+                .userId(userId)
+                .tripId(request.getTripId())
+                .status(request.getStatus())
+                .message(request.getMessage())
                 .build();
 
-        return companionDto;
+        Companion savedCompanion = companionRepository.save(companion);
+
+        log.info(
+                "Companion profile created successfully. companionId={}",
+                savedCompanion.getId()
+        );
+
+        return modelMapper.map(
+                savedCompanion,
+                CompanionResponse.class
+        );
     }
 
+    public CompanionResponse updateCompanion(
+            Long companionId,
+            UpdateCompanionRequest request
+    ) {
 
-
-
-    public void deleteCompanion(Long id){
         Long userId = UserContextHolder.getCurrentUserId();
 
-        log.info("Deleting companion ID: {} by userId: {}",id, userId);
+        log.info(
+                "Updating companionId={} for userId={}",
+                companionId,
+                userId
+        );
 
-        Companion companion = companionRepository.findById(id)
-                .orElseThrow(()->new ResourceNotFoundException("Companion not found with id: "+id+ userId));
+        Companion companion = companionRepository.findById(companionId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Companion not found with id: " + companionId
+                        )
+                );
 
-        if(!companion.getUserId().equals(userId)){
-            throw new BadRequestException("You are nnt allowed to delete this companion request.");
+        if (!companion.getUserId().equals(userId)) {
+            throw new BadRequestException(
+                    "You are not authorized to update this companion profile"
+            );
+        }
+
+        if (request.getTripId() != null) {
+            companion.setTripId(request.getTripId());
+        }
+
+        if (request.getStatus() != null) {
+            companion.setStatus(request.getStatus());
+        }
+
+        if (request.getMessage() != null) {
+            companion.setMessage(request.getMessage());
+        }
+
+        Companion updatedCompanion =
+                companionRepository.save(companion);
+
+        log.info(
+                "Companion profile updated successfully. companionId={}",
+                updatedCompanion.getId()
+        );
+
+        return modelMapper.map(
+                updatedCompanion,
+                CompanionResponse.class
+        );
+    }
+
+    public void deleteCompanion(Long companionId) {
+
+        Long userId = UserContextHolder.getCurrentUserId();
+
+        log.info(
+                "Deleting companionId={} for userId={}",
+                companionId,
+                userId
+        );
+
+        Companion companion = companionRepository.findById(companionId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Companion not found with id: " + companionId
+                        )
+                );
+
+        if (!companion.getUserId().equals(userId)) {
+            throw new BadRequestException(
+                    "You are not authorized to delete this companion profile"
+            );
         }
 
         companionRepository.delete(companion);
-        log.info("Companion with ID: {} deleted", id);
+
+        log.info(
+                "Companion profile deleted successfully. companionId={}",
+                companionId
+        );
     }
 
-    public List<CompanionDto> getAllCompanions(){
+    @Transactional(readOnly = true)
+    public List<CompanionResponse> getAllCompanions() {
+
         Long userId = UserContextHolder.getCurrentUserId();
-        log.info("Fetching all companions except for userid: {}",userId);
 
-        List<Companion> companions = companionRepository.findByUserId(userId);
+        log.info(
+                "Fetching companion profiles for userId={}",
+                userId
+        );
 
-        return companions.stream()
-                .map(companion->modelMapper.map(companion,CompanionDto.class))
-                .collect(Collectors.toList());
+        return companionRepository.findByUserId(userId)
+                .stream()
+                .map(companion ->
+                        modelMapper.map(
+                                companion,
+                                CompanionResponse.class
+                        )
+                )
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CompanionResponse getCompanionById(
+            Long companionId
+    ) {
+
+        Long userId = UserContextHolder.getCurrentUserId();
+
+        Companion companion = companionRepository.findById(companionId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Companion not found with id: " + companionId
+                        )
+                );
+
+        if (!companion.getUserId().equals(userId)) {
+            throw new BadRequestException(
+                    "You are not authorized to access this companion profile"
+            );
+        }
+
+        return modelMapper.map(
+                companion,
+                CompanionResponse.class
+        );
     }
 }

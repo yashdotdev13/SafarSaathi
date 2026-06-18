@@ -1,12 +1,17 @@
 package com.company.SafarSaathi.companion_service.controller;
 
-
-import com.company.SafarSaathi.companion_service.auth.UserContextHolder;
-import com.company.SafarSaathi.companion_service.dtos.*;
-import com.company.SafarSaathi.companion_service.entity.CompanionPreference;
+import com.company.SafarSaathi.companion_service.dtos.request.CreateCompanionPreferenceRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.CreateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.SendCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.UpdateCompanionPreferenceRequest;
+import com.company.SafarSaathi.companion_service.dtos.request.UpdateCompanionRequest;
+import com.company.SafarSaathi.companion_service.dtos.response.CompanionPreferenceResponse;
+import com.company.SafarSaathi.companion_service.dtos.response.CompanionRequestResponse;
+import com.company.SafarSaathi.companion_service.dtos.response.CompanionResponse;
 import com.company.SafarSaathi.companion_service.service.CompanionPreferenceService;
 import com.company.SafarSaathi.companion_service.service.CompanionRequestService;
 import com.company.SafarSaathi.companion_service.service.CompanionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,91 +30,171 @@ public class CompanionController {
     private final CompanionPreferenceService preferenceService;
     private final CompanionRequestService companionRequestService;
 
-    @PostMapping("/create")
-    public ResponseEntity<CompanionDto> createCompanion(@RequestBody CreateCompanionRequest requestDto) {
-        CompanionDto created = companionService.createCompanion(requestDto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
-    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CompanionDto> updateCompanion(
-            @PathVariable Long id,
-            @RequestBody UpdateCompanionRequest request
+    @PostMapping
+    public ResponseEntity<CompanionResponse> createCompanion(
+            @Valid @RequestBody CreateCompanionRequest request
     ) {
-        CompanionDto updated = companionService.updateCompanion(id, request);
-        return ResponseEntity.ok(updated);
+
+        log.info("Creating companion profile");
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(companionService.createCompanion(request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCompanion(@PathVariable Long id){
-        log.info("Deleting companion with id: {}", id);
-        companionService.deleteCompanion(id);
+    @PutMapping("/{companionId}")
+    public ResponseEntity<CompanionResponse> updateCompanion(
+            @PathVariable Long companionId,
+            @Valid @RequestBody UpdateCompanionRequest request
+    ) {
+
+        log.info(
+                "Updating companion profile. companionId={}",
+                companionId
+        );
+
+        return ResponseEntity.ok(
+                companionService.updateCompanion(
+                        companionId,
+                        request
+                )
+        );
+    }
+
+    @DeleteMapping("/{companionId}")
+    public ResponseEntity<Void> deleteCompanion(
+            @PathVariable Long companionId
+    ) {
+
+        log.info(
+                "Deleting companion profile. companionId={}",
+                companionId
+        );
+
+        companionService.deleteCompanion(companionId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<CompanionDto>> getAllCompanions(){
-        log.info("Getting all the companion");
-        return ResponseEntity.ok(companionService.getAllCompanions());
+    public ResponseEntity<List<CompanionResponse>> getMyCompanions() {
+
+        log.info("Fetching companion profiles");
+
+        return ResponseEntity.ok(
+                companionService.getAllCompanions()
+        );
     }
+
+    @GetMapping("/{companionId}")
+    public ResponseEntity<CompanionResponse> getCompanionById(
+            @PathVariable Long companionId
+    ) {
+
+        return ResponseEntity.ok(
+                companionService.getCompanionById(companionId)
+        );
+    }
+
 
     @PostMapping("/preferences")
-    public ResponseEntity<String> savePreference(@RequestBody CompanionPreference preference) {
-        preferenceService.savePreference(preference);
-        return ResponseEntity.ok("Preference saved successfully");
+    public ResponseEntity<CompanionPreferenceResponse> createPreference(
+            @Valid @RequestBody CreateCompanionPreferenceRequest request
+    ) {
+
+        log.info("Creating companion preference");
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(preferenceService.createPreference(request));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<CompanionPreference> getPreference(@PathVariable Long userId) {
-        return preferenceService.getPreferenceByUserId(userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PutMapping("/preferences")
+    public ResponseEntity<CompanionPreferenceResponse> updatePreference(
+            @Valid @RequestBody UpdateCompanionPreferenceRequest request
+    ) {
+
+        log.info("Updating companion preference");
+
+        return ResponseEntity.ok(
+                preferenceService.updatePreference(request)
+        );
+    }
+
+    @GetMapping("/preferences/me")
+    public ResponseEntity<CompanionPreferenceResponse> getMyPreference() {
+
+        return ResponseEntity.ok(
+                preferenceService.getMyPreference()
+        );
     }
 
 
-    // code fpr the companion Request controller
+    @PostMapping("/requests")
+    public ResponseEntity<CompanionRequestResponse> sendRequest(
+            @Valid @RequestBody SendCompanionRequest request
+    ) {
 
+        log.info(
+                "Sending companion request to receiverId={}",
+                request.getReceiverId()
+        );
 
-    @PostMapping("/send")
-    public ResponseEntity<CompanionRequestResponseDto> sendRequest(@RequestBody CompanionRequestDto dto){
-        Long currentUserId = UserContextHolder.getCurrentUserId();
-        dto.setSenderId(currentUserId);
-        log.info("User {} sending a companion request to user: {}",currentUserId, dto.getReceiverId());
-        return ResponseEntity.ok(companionRequestService.sendRequest(dto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(
+                        companionRequestService.sendRequest(
+                                request
+                        )
+                );
     }
 
-    @PostMapping("/{requestId}/accept")
-    public ResponseEntity<CompanionRequestResponseDto> acceptRequest(@PathVariable Long requestId){
-        Long currentUserId = UserContextHolder.getCurrentUserId();
+    @PostMapping("/requests/{requestId}/accept")
+    public ResponseEntity<CompanionRequestResponse> acceptRequest(
+            @PathVariable Long requestId
+    ) {
 
-        log.info("User {} is accepting request ID {}",currentUserId, requestId);
+        log.info(
+                "Accepting companion request. requestId={}",
+                requestId
+        );
 
-        return ResponseEntity.ok(companionRequestService.acceptRequest(requestId));
+        return ResponseEntity.ok(
+                companionRequestService.acceptRequest(
+                        requestId
+                )
+        );
     }
 
-    // API Added for the reject Request
-    @PostMapping("/{requestId}/reject")
-    public ResponseEntity<CompanionRequestResponseDto> rejectRequest(@PathVariable Long requestId){
-        Long currentUserId = UserContextHolder.getCurrentUserId();
-        log.info("User {} is rejecting request ID: {}",currentUserId, requestId);
-        return ResponseEntity.ok(companionRequestService.rejectRequest(requestId));
+    @PostMapping("/requests/{requestId}/reject")
+    public ResponseEntity<CompanionRequestResponse> rejectRequest(
+            @PathVariable Long requestId
+    ) {
+
+        log.info(
+                "Rejecting companion request. requestId={}",
+                requestId
+        );
+
+        return ResponseEntity.ok(
+                companionRequestService.rejectRequest(
+                        requestId
+                )
+        );
     }
 
-    @GetMapping("/received")
-    public ResponseEntity<List<CompanionRequestResponseDto>> getReceivedRequests() {
-        Long currentUserId = UserContextHolder.getCurrentUserId();
-        log.info("Fetching received companion requests for user {}", currentUserId);
+    @GetMapping("/requests/received")
+    public ResponseEntity<List<CompanionRequestResponse>>
+    getReceivedRequests() {
 
-        return ResponseEntity.ok(companionRequestService.getRequestsForUser());
+        return ResponseEntity.ok(
+                companionRequestService.getReceivedRequests()
+        );
     }
 
-    // API for the getSentRequests
-    @GetMapping("/sent")
-    public ResponseEntity<List<CompanionRequestResponseDto>> getSentRequests() {
-        Long currentUserId = UserContextHolder.getCurrentUserId();
-        log.info("Fetching sent companion requests by user {}", currentUserId);
+    @GetMapping("/requests/sent")
+    public ResponseEntity<List<CompanionRequestResponse>>
+    getSentRequests() {
 
-        return ResponseEntity.ok(companionRequestService.getSentRequests());
+        return ResponseEntity.ok(
+                companionRequestService.getSentRequests()
+        );
     }
-
 }

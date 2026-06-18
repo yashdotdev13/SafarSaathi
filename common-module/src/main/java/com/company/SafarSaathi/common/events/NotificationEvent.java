@@ -1,4 +1,4 @@
-package com.company.SafarSaathi.companion_service.dtos;
+package com.company.SafarSaathi.common.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UpdateCompanionRequest {
-    private Long tripId;
-    private String status;
+public class NotificationEvent {
+    private String userId;
+    private String type;
     private String message;
+    private String email;
+    private String phoneNumber;
+
 }

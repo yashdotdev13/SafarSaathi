@@ -9,7 +9,7 @@
         <module name="common-module" />
         <module name="discovery-server" />
       </profile>
-      <profile name="Annotation profile for auth-service" enabled="true">
+      <profile name="Annotation profile for companion-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -18,8 +18,8 @@
         </processorPath>
         <module name="companion-service" />
         <module name="bot-service" />
-        <module name="auth-service" />
         <module name="trip-service" />
+        <module name="auth-service" />
         <module name="api-gateway" />
         <module name="user-service" />
         <module name="notification-service" />

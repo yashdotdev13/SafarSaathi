@@ -1,24 +1,26 @@
-package com.company.SafarSaathi.companion_service.dtos;
+package com.company.SafarSaathi.companion_service.dtos.response;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class CompanionPreferenceDto {
+@AllArgsConstructor
+public class CompanionPreferenceResponse {
+
+    private Long id;
+
+    private Long userId;
 
     private Integer preferredAgeMin;
+
     private Integer preferredAgeMax;
 
     private String preferredGender;
-    private String travelType;
 
     private Boolean smokerOk;
+
     private Boolean drinkerOk;
 
     private String preferredTripMode;
-
 }
