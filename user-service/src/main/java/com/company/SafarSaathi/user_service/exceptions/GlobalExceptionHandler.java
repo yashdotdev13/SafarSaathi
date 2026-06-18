@@ -111,11 +111,13 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request) {
 
+        ex.printStackTrace();   // ADD THIS
+
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.name())
-                .message("An unexpected error occurred")
+                .message(ex.getMessage())   // CHANGE THIS
                 .path(request.getRequestURI())
                 .build();
 
