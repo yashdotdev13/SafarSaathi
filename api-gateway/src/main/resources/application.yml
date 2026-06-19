@@ -56,7 +56,6 @@ spring:
           predicates:
             - Path=/api/v1/notifications/**
           filters:
-            - StripPrefix=2
             - name: AuthenticationFilter
 
 
