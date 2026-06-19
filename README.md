@@ -1,87 +1,387 @@
-# 🌏 SafarSaathi — Backend
+# 🌍 SafarSaathi
 
-SafarSaathi is a **microservices-based travel companion matching platform** that helps travelers find compatible companions for their journeys.  
-The backend is built with **Spring Boot**, following a modular architecture for scalability, maintainability, and future feature expansion.
-
----
-
-## 🚀 Tech Stack
-
-- **Java 21** + **Spring Boot**
-- **Spring Cloud** (Eureka, API Gateway, Feign Clients)
-- **Spring Security + JWT** (Centralized Authentication)
-- **MySQL** (Primary database)
--  **PostgreSQl** (Primary database)
-- **Neo4j** (Graph relationships for companion connections)
-- **Kafka** (Planned: Notification & event streaming)
-- **Python ML Service** (Companion matching engine)
-- **Docker** (Containerization)
-- **Feign Client** for inter-service communication
+> AI-Native Travel Companion Platform built using Microservices, Event-Driven Architecture, Kafka, Spring Boot, and Cloud-Native Technologies.
 
 ---
 
-## 🏗️ Microservices Overview
+## 📖 Overview
 
-| Service Name        | Description |
-|---------------------|-------------|
-| **auth-service**    | Handles signup, login, and JWT token generation. |
-| **user-service**    | Manages user profiles including bio, location, lifestyle, and travel preferences. |
-| **trip-service**    | Manages trip creation, updates, search, and status changes. |
-| **companion-service** | Handles companion requests, preferences, and connections (with Neo4j relationships). |
-| **matching-service** | Finds top travel companion matches using ML-based ranking. |
-| **bot-service**     | Provides basic chat/recommendations (AI-assisted). |
-| **notification-service** *(planned)* | Sends notifications via Email, WhatsApp, etc., using Kafka events. |
-| **chat-service** *(planned)* | Real-time chat between matched companions using WebSocket/STOMP. |
+SafarSaathi is a microservices-based travel companion platform that helps travelers discover trips, connect with compatible travel companions, and receive real-time notifications throughout their journey.
 
----
+The project is being built as a production-grade distributed system with a strong focus on:
 
----
-
-## 🔑 Features
-
-- **Centralized Authentication** at API Gateway
-- **Secure JWT-based authorization** for all services
-- **Profile-driven matching** with ML integration
-- **Graph relationships** to track companion requests (Neo4j)
-- **Trip management** with search filters and geocoding
-- **Future-ready** for notifications & chat
-- **Inter-service communication** via Feign Clients
+* Microservices Architecture
+* Event-Driven Communication
+* Service Discovery
+* API Gateway Pattern
+* JWT Authentication & Authorization
+* Kafka Messaging
+* Cloud-Native Deployment
+* Observability
+* AI-Powered Companion Matching (Upcoming)
 
 ---
 
-## ⚙️ How to Run
+# 🏗️ Current Architecture
 
-### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/your-username/SafarSaathi.git
-cd SafarSaathi
+```text
+                        ┌─────────────────┐
+                        │   API Gateway   │
+                        │    Port 8081    │
+                        └────────┬────────┘
+                                 │
+         ┌───────────────────────┼───────────────────────┐
+         │                       │                       │
+         ▼                       ▼                       ▼
 
-2️⃣ Start Eureka Server
-cd eureka-server
-mvn spring-boot:run
+ ┌───────────────┐      ┌────────────────┐     ┌─────────────────┐
+ │ Auth Service  │      │ User Service   │     │ Companion Service│
+ │ JWT Security  │      │ User Profiles  │     │ Matching & Reqs │
+ └───────┬───────┘      └────────────────┘     └────────┬────────┘
+         │                                               │
+         │                                               ▼
+         │                                    ┌─────────────────┐
+         │                                    │ Kafka Producer  │
+         │                                    └────────┬────────┘
+         │                                             │
+         ▼                                             ▼
 
-3️⃣ Start API Gateway
-cd api-gateway
-mvn spring-boot:run
+                 ┌─────────────────────────────────┐
+                 │             Kafka               │
+                 └────────────────┬────────────────┘
+                                  │
+                                  ▼
 
-4️⃣ Start Microservices
-Run each microservice in separate terminals:
+                     ┌─────────────────────────┐
+                     │ Notification Service    │
+                     │ Kafka Consumer          │
+                     │ Notification APIs       │
+                     └─────────────────────────┘
 
-cd auth-service && mvn spring-boot:run
-cd user-service && mvn spring-boot:run
-cd trip-service && mvn spring-boot:run
-cd companion-service && mvn spring-boot:run
-cd matching-service && mvn spring-boot:run
-cd bot-service && mvn spring-boot:run
+                                  │
+                                  ▼
 
-*📜 License
-This project is licensed under the MIT License — feel free to use and adapt it.
+                           PostgreSQL
+```
+
 ---
 
-If you want, I can also make this **README** with:
-- A **diagram** showing service interactions
-- **Badges** (Java, Spring Boot, Docker, MySQL, etc.)
-- Example **API request/response JSON** for each service
+# 🚀 Implemented Services
 
-That would make it even more polished and professional.**
+---
 
+## 1️⃣ API Gateway
+
+### Features
+
+* Centralized Entry Point
+* JWT Validation
+* Route Management
+* Service-to-Service Routing
+* Authentication Filter
+
+### Technology
+
+* Spring Cloud Gateway
+
+---
+
+## 2️⃣ Eureka Discovery Server
+
+### Features
+
+* Service Registration
+* Service Discovery
+* Dynamic Instance Resolution
+
+### Technology
+
+* Spring Cloud Netflix Eureka
+
+---
+
+## 3️⃣ Auth Service
+
+### Features
+
+* User Registration
+* User Login
+* JWT Token Generation
+* JWT Validation
+* Role-Based Authentication
+
+### Technology
+
+* Spring Boot
+* Spring Security
+* JWT
+
+---
+
+## 4️⃣ User Service
+
+### Features
+
+* User Profile Management
+* Profile Update
+* User Lookup
+* Feign Client Integration Support
+
+### APIs
+
+```http
+GET /users/profile
+
+GET /users/profile/{userId}
+
+PUT /users/profile
+```
+
+---
+
+## 5️⃣ Companion Service
+
+### Features
+
+* Create Companion Profile
+* Companion Preferences
+* Send Companion Requests
+* Accept Companion Requests
+* Reject Companion Requests
+* Feign Client Integration with User Service
+
+### APIs
+
+```http
+POST /api/v1/companions
+
+PUT /api/v1/companions/{id}
+
+DELETE /api/v1/companions/{id}
+
+GET /api/v1/companions
+```
+
+### Companion Request APIs
+
+```http
+POST /api/v1/companions/requests
+
+POST /api/v1/companions/requests/{id}/accept
+
+POST /api/v1/companions/requests/{id}/reject
+
+GET /api/v1/companions/requests/received
+
+GET /api/v1/companions/requests/sent
+```
+
+---
+
+## 6️⃣ Notification Service
+
+### Features
+
+* Kafka Consumer
+* Event Persistence
+* Notification Retrieval
+* Unread Notifications
+* Mark Notifications as Read
+
+### Event Flow
+
+```text
+Companion Service
+        ↓
+Notification Event
+        ↓
+Kafka Topic
+        ↓
+Notification Service
+        ↓
+PostgreSQL
+```
+
+### APIs
+
+```http
+GET /api/v1/notifications
+
+GET /api/v1/notifications/unread
+
+PUT /api/v1/notifications/{id}/read
+```
+
+---
+
+# 🔄 Event-Driven Architecture
+
+Currently Implemented Events:
+
+### REQUEST_RECEIVED
+
+Triggered when a user receives a companion request.
+
+### REQUEST_ACCEPTED
+
+Triggered when a companion request is accepted.
+
+### REQUEST_REJECTED
+
+Triggered when a companion request is rejected.
+
+---
+
+# 📨 Kafka Integration
+
+### Producer
+
+Companion Service
+
+### Consumer
+
+Notification Service
+
+### Topic
+
+```text
+notification-topic
+```
+
+---
+
+# 🔐 Security
+
+Authentication is handled centrally using JWT.
+
+### Flow
+
+```text
+User Login
+      ↓
+JWT Token
+      ↓
+API Gateway
+      ↓
+Authentication Filter
+      ↓
+Microservices
+```
+
+---
+
+# 🛠️ Tech Stack
+
+## Backend
+
+* Java 21
+* Spring Boot 3.3
+* Spring Security
+* Spring Data JPA
+* Spring Cloud
+
+## Communication
+
+* OpenFeign
+* Apache Kafka
+
+## Databases
+
+* PostgreSQL
+
+## Service Discovery
+
+* Eureka Server
+
+## API Gateway
+
+* Spring Cloud Gateway
+
+## Build Tool
+
+* Maven
+
+## Version Control
+
+* Git
+* GitHub
+
+---
+
+# 📂 Current Service Ports
+
+| Service              | Port |
+| -------------------- | ---- |
+| API Gateway          | 8081 |
+| Eureka Server        | 8761 |
+| Auth Service         | 9000 |
+| User Service         | 9030 |
+| Companion Service    | 9040 |
+| Notification Service | 9050 |
+
+---
+
+# 📌 Current Progress
+
+### Completed
+
+* API Gateway
+* Eureka Discovery
+* JWT Authentication
+* User Management
+* Companion Management
+* Companion Requests
+* Feign Client Integration
+* Kafka Event Publishing
+* Kafka Event Consumption
+* Notification Service
+
+### In Progress
+
+* Trip Service
+
+### Planned
+
+* Companion Matching Engine
+* Neo4j Recommendation Graph
+* Redis Caching
+* Prometheus Monitoring
+* Grafana Dashboards
+* Distributed Tracing
+* Docker Compose
+* Kubernetes Deployment
+* AWS EKS
+* GitHub Actions CI/CD
+* ArgoCD GitOps
+* AI Companion Recommendation Engine
+* Multi-Agent Travel Assistant
+
+---
+
+# 👨‍💻 Author
+
+**Yash Chauhan**
+
+Building production-grade distributed systems with Java, Spring Boot, Kafka, Kubernetes, Cloud, and AI-powered architectures.
+
+GitHub:
+https://github.com/yashdotdev13
+
+LinkedIn:
+https://www.linkedin.com/in/yash-chauhan-a415b6246/
+
+---
+
+## ⭐ SafarSaathi Vision
+
+SafarSaathi is evolving into an AI-Native Travel Platform where travelers can:
+
+* Discover trips
+* Find compatible companions
+* Receive intelligent recommendations
+* Interact with AI travel agents
+* Build trusted travel networks
+
+The goal is to combine:
+
+**Backend Engineering + Distributed Systems + Cloud + DevOps + AI**
