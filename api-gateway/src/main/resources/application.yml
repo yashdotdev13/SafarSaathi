@@ -51,6 +51,15 @@ spring:
 
 
 
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: AuthenticationFilter
+
+
+
         - id: Bot-service
           uri: lb://Bot-service
           predicates:
