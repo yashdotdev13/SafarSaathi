@@ -108,9 +108,11 @@ public class TripService {
         if (!trip.getUserId().equals(userId)) {
             throw new BadRequestException("You are not allowed to update this trip");
         }
-        TripStatus existingStatus = trip.getStatus();
-        modelMapper.map(request, trip);
-        trip.setStatus(existingStatus);
+
+        updateTripFields(
+                trip,
+                request
+        );
 
         GeocodingUtil.Coordinates originCoords = geocodingUtil.getCoordinates(request.getOrigin());
         if (originCoords != null) {
