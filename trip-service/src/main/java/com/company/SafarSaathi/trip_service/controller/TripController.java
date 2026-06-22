@@ -7,6 +7,7 @@ import com.company.SafarSaathi.trip_service.dtos.TripUpdateRequestDto;
 import com.company.SafarSaathi.trip_service.enums.ModeOfTravel;
 import com.company.SafarSaathi.trip_service.enums.TripStatus;
 import com.company.SafarSaathi.trip_service.service.TripService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,7 +28,7 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping
-    public ResponseEntity<TripDto> createTrip(@RequestBody TripCreateRequestDto request){
+    public ResponseEntity<TripDto> createTrip(@Valid @RequestBody TripCreateRequestDto request){
         log.info("Creating new trip");
         TripDto trip = tripService.createTrip(request);
         return new ResponseEntity<>(trip, HttpStatus.CREATED);
@@ -56,7 +57,7 @@ public class TripController {
     @PutMapping("/{tripId}")
     public ResponseEntity<TripDto> updateTrip(
             @PathVariable Long tripId,
-            @RequestBody TripUpdateRequestDto request
+            @Valid @RequestBody TripUpdateRequestDto request
     ) {
         log.info("Updating trip with ID: {}", tripId);
         TripDto trip = tripService.updateTrip(tripId, request);
