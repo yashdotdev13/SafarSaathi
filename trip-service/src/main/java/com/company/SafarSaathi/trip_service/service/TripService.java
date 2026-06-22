@@ -2,6 +2,7 @@ package com.company.SafarSaathi.trip_service.service;
 
 
 import com.company.SafarSaathi.common.events.TripCreatedEvent;
+import com.company.SafarSaathi.common.events.TripUpdatedEvent;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
 import com.company.SafarSaathi.trip_service.dtos.TripCreateRequestDto;
 import com.company.SafarSaathi.trip_service.dtos.TripDto;
@@ -151,6 +152,17 @@ public class TripService {
 
 
         Trip updatedTrip = tripRepository.save(trip);
+
+        TripUpdatedEvent event =
+                TripUpdatedEvent.builder()
+                        .tripId(updatedTrip.getId())
+                        .userId(updatedTrip.getUserId())
+                        .origin(updatedTrip.getOrigin())
+                        .destination(updatedTrip.getDestination())
+                        .status(updatedTrip.getStatus().name())
+                        .build();
+
+        tripEventProducer.publishTripUpdated(event);
         log.info("Trip updated with ID: {}", updatedTrip.getId());
         return modelMapper.map(updatedTrip, TripDto.class);
     }

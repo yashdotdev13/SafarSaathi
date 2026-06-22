@@ -19,4 +19,6 @@ public class TripUpdatedEvent {
     private String destination;
 
     private String origin;
+
+    private String status;
 }
