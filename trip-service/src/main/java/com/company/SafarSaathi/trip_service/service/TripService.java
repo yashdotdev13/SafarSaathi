@@ -1,6 +1,10 @@
 package com.company.SafarSaathi.trip_service.service;
 
 
+import com.company.SafarSaathi.common.events.TripCancelledEvent;
+import com.company.SafarSaathi.common.events.TripCompletedEvent;
+import com.company.SafarSaathi.common.events.TripCreatedEvent;
+import com.company.SafarSaathi.common.events.TripUpdatedEvent;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
 import com.company.SafarSaathi.trip_service.dtos.TripCreateRequestDto;
 import com.company.SafarSaathi.trip_service.dtos.TripDto;
@@ -10,6 +14,7 @@ import com.company.SafarSaathi.trip_service.enums.ModeOfTravel;
 import com.company.SafarSaathi.trip_service.enums.TripStatus;
 import com.company.SafarSaathi.trip_service.exceptions.BadRequestException;
 import com.company.SafarSaathi.trip_service.exceptions.ResourceNotFoundException;
+import com.company.SafarSaathi.trip_service.kafka.TripEventProducer;
 import com.company.SafarSaathi.trip_service.repository.TripRepository;
 import com.company.SafarSaathi.trip_service.utils.GeocodingUtil;
 import com.company.SafarSaathi.trip_service.utils.TripSpecification;
@@ -36,10 +41,15 @@ public class TripService {
     private final TripRepository tripRepository;
     private final ModelMapper modelMapper;
     private final GeocodingUtil geocodingUtil;
+    private final TripEventProducer tripEventProducer;
 
 
 
     public TripDto createTrip(TripCreateRequestDto request){
+
+        validateTripCreation(request);
+
+
         Long userId = UserContextHolder.getCurrentUserId();
 
         Trip trip = modelMapper.map(request, Trip.class);
@@ -65,6 +75,22 @@ public class TripService {
 
 
         Trip savedTrip = tripRepository.save(trip);
+
+        TripCreatedEvent event =
+                TripCreatedEvent.builder()
+                        .tripId(savedTrip.getId())
+                        .userId(savedTrip.getUserId())
+                        .origin(savedTrip.getOrigin())
+                        .destination(savedTrip.getDestination())
+                        .startDate(savedTrip.getStartDate())
+                        .endDate(savedTrip.getEndDate())
+                        .maxTravelers(savedTrip.getMaxTravelers())
+                        .modeOfTravel(
+                                savedTrip.getModeOfTravel().name()
+                        )
+                        .build();
+
+        tripEventProducer.publishTripCreated(event);
         log.info("Trip created with ID: {}", savedTrip.getId());
 
         return modelMapper.map(savedTrip, TripDto.class);
@@ -94,6 +120,9 @@ public class TripService {
     }
 
     public TripDto updateTrip(Long tripId, TripUpdateRequestDto request) {
+
+        validateTripUpdate(request);
+
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found with ID: " + tripId));
 
@@ -101,9 +130,11 @@ public class TripService {
         if (!trip.getUserId().equals(userId)) {
             throw new BadRequestException("You are not allowed to update this trip");
         }
-        TripStatus existingStatus = trip.getStatus();
-        modelMapper.map(request, trip);
-        trip.setStatus(existingStatus);
+
+        updateTripFields(
+                trip,
+                request
+        );
 
         GeocodingUtil.Coordinates originCoords = geocodingUtil.getCoordinates(request.getOrigin());
         if (originCoords != null) {
@@ -123,6 +154,17 @@ public class TripService {
 
 
         Trip updatedTrip = tripRepository.save(trip);
+
+        TripUpdatedEvent event =
+                TripUpdatedEvent.builder()
+                        .tripId(updatedTrip.getId())
+                        .userId(updatedTrip.getUserId())
+                        .origin(updatedTrip.getOrigin())
+                        .destination(updatedTrip.getDestination())
+                        .status(updatedTrip.getStatus().name())
+                        .build();
+
+        tripEventProducer.publishTripUpdated(event);
         log.info("Trip updated with ID: {}", updatedTrip.getId());
         return modelMapper.map(updatedTrip, TripDto.class);
     }
@@ -162,8 +204,39 @@ public class TripService {
         if(!trip.getUserId().equals(userId)){
             throw new BadRequestException("You are not allowed to modify this trip's status");
         }
+
+        // validate trip status
+        validateStatusTransition(
+                trip.getStatus(),
+                status
+        );
+
         trip.setStatus(status);
+
         Trip saved = tripRepository.save(trip);
+
+        if (status == TripStatus.CANCELLED) {
+
+            TripCancelledEvent event =
+                    TripCancelledEvent.builder()
+                            .tripId(saved.getId())
+                            .userId(saved.getUserId())
+                            .build();
+
+            tripEventProducer.publishTripCancelled(event);
+        }
+
+        if (status == TripStatus.COMPLETED) {
+
+            TripCompletedEvent event =
+                    TripCompletedEvent.builder()
+                            .tripId(saved.getId())
+                            .userId(saved.getUserId())
+                            .build();
+
+            tripEventProducer.publishTripCompleted(event);
+        }
+
         log.info("Trip status updated to {} for ID: {}",status, tripId);
         return modelMapper.map(saved, TripDto.class);
     }
@@ -198,6 +271,158 @@ public class TripService {
 
         return tripRepository.findAll(spec, pageable)
                 .map(trip -> modelMapper.map(trip, TripDto.class));
+    }
+
+
+    private void validateTripCreation(
+            TripCreateRequestDto request
+    ) {
+
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new BadRequestException(
+                    "End date cannot be before start date"
+            );
+        }
+
+        if (request.getEndDate().isEqual(request.getStartDate())) {
+            throw new BadRequestException(
+                    "Trip duration must be greater than zero"
+            );
+        }
+
+        if (request.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException(
+                    "Trip start date cannot be in the past"
+            );
+        }
+
+        if (request.getMaxTravelers() > 20) {
+            throw new BadRequestException(
+                    "Maximum travelers allowed is 20"
+            );
+        }
+
+        if (request.getEstimatedCost() != null
+                && request.getEstimatedCost() > 10000000) {
+
+            throw new BadRequestException(
+                    "Estimated cost exceeds allowed limit"
+            );
+        }
+    }
+
+    private void validateTripUpdate(TripUpdateRequestDto request) {
+
+        if (request.getStartDate() != null && request.getEndDate() != null) {
+
+            if (request.getEndDate().isBefore(request.getStartDate())) {
+                throw new BadRequestException("End date cannot be before start data");
+            }
+
+            if (request.getEndDate().isEqual(request.getStartDate())) {
+                throw new BadRequestException("Trip duration must be greater than zero");
+            }
+        }
+
+        if (request.getMaxTravelers() != null && request.getMaxTravelers() > 20) {
+
+            throw new BadRequestException("Maximum travelers allowed is 20");
+        }
+
+        if (request.getEstimatedCost() != null
+                && request.getEstimatedCost() > 10000000) {
+
+            throw new BadRequestException(
+                    "Estimated cost exceeds allowed limit"
+            );
+        }
+    }
+
+
+    private void updateTripFields(
+            Trip trip,
+            TripUpdateRequestDto request
+    ) {
+
+        if (request.getDestination() != null) {
+            trip.setDestination(request.getDestination());
+        }
+
+        if (request.getOrigin() != null) {
+            trip.setOrigin(request.getOrigin());
+        }
+
+        if (request.getStartDate() != null) {
+            trip.setStartDate(request.getStartDate());
+        }
+
+        if (request.getEndDate() != null) {
+            trip.setEndDate(request.getEndDate());
+        }
+
+        if (request.getModeOfTravel() != null) {
+            trip.setModeOfTravel(request.getModeOfTravel());
+        }
+
+        if (request.getMaxTravelers() != null) {
+            trip.setMaxTravelers(request.getMaxTravelers());
+        }
+
+        if (request.getDescription() != null) {
+            trip.setDescription(request.getDescription());
+        }
+
+        if (request.getEstimatedCost() != null) {
+            trip.setEstimatedCost(request.getEstimatedCost());
+        }
+
+        trip.setPrivate(request.isPrivate());
+    }
+
+
+    private void validateStatusTransition(
+            TripStatus currentStatus,
+            TripStatus newStatus
+    ) {
+
+        if (currentStatus == newStatus) {
+            throw new BadRequestException(
+                    "Trip is already in status: " + currentStatus
+            );
+        }
+
+        switch (currentStatus) {
+
+            case PLANNED -> {
+
+                if (newStatus != TripStatus.ONGOING
+                        && newStatus != TripStatus.CANCELLED) {
+
+                    throw new BadRequestException(
+                            "PLANNED trip can only be moved to ONGOING or CANCELLED"
+                    );
+                }
+            }
+
+            case ONGOING -> {
+
+                if (newStatus != TripStatus.COMPLETED
+                        && newStatus != TripStatus.CANCELLED) {
+
+                    throw new BadRequestException(
+                            "ONGOING trip can only be moved to COMPLETED or CANCELLED"
+                    );
+                }
+            }
+
+            case COMPLETED -> throw new BadRequestException(
+                    "Completed trips cannot be modified"
+            );
+
+            case CANCELLED -> throw new BadRequestException(
+                    "Cancelled trips cannot be modified"
+            );
+        }
     }
 
 }
