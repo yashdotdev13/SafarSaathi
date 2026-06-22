@@ -171,7 +171,15 @@ public class TripService {
         if(!trip.getUserId().equals(userId)){
             throw new BadRequestException("You are not allowed to modify this trip's status");
         }
+
+        // validate trip status
+        validateStatusTransition(
+                trip.getStatus(),
+                status
+        );
+
         trip.setStatus(status);
+
         Trip saved = tripRepository.save(trip);
         log.info("Trip status updated to {} for ID: {}",status, tripId);
         return modelMapper.map(saved, TripDto.class);
