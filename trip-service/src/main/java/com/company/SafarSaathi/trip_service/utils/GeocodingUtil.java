@@ -3,6 +3,7 @@ package com.company.SafarSaathi.trip_service.utils;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,12 +12,15 @@ import java.util.List;
 @Slf4j
 @Component
 public class GeocodingUtil {
-    private static final String API_KEY = System.getProperty("GOOGLE_API_KEY");
+
+    @Value("${opencage.api.key}")
+    private String apiKey;
+
     private static final String BASE_URL = "https://api.opencagedata.com/geocode/v1/json?q=%s&key=%s";
 
     public Coordinates getCoordinates(String location) {
         try {
-            String url = String.format(BASE_URL, location.replace(" ", "%20"), API_KEY);
+            String url = String.format(BASE_URL, location.replace(" ", "%20"), apiKey);
             RestTemplate restTemplate = new RestTemplate();
             OpenCageResponse response = restTemplate.getForObject(url, OpenCageResponse.class);
             if (response != null && !response.results.isEmpty()) {
