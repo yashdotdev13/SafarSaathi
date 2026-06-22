@@ -39,6 +39,11 @@ public class KafkaProducerConfig {
                 JsonSerializer.class
         );
 
+        config.put(
+                JsonSerializer.ADD_TYPE_INFO_HEADERS,
+                true
+        );
+
         return new DefaultKafkaProducerFactory<>(
                 config
         );
