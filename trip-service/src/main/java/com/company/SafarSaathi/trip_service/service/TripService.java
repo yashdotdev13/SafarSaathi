@@ -200,4 +200,42 @@ public class TripService {
                 .map(trip -> modelMapper.map(trip, TripDto.class));
     }
 
+
+    private void validateTripCreation(
+            TripCreateRequestDto request
+    ) {
+
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new BadRequestException(
+                    "End date cannot be before start date"
+            );
+        }
+
+        if (request.getEndDate().isEqual(request.getStartDate())) {
+            throw new BadRequestException(
+                    "Trip duration must be greater than zero"
+            );
+        }
+
+        if (request.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException(
+                    "Trip start date cannot be in the past"
+            );
+        }
+
+        if (request.getMaxTravelers() > 20) {
+            throw new BadRequestException(
+                    "Maximum travelers allowed is 20"
+            );
+        }
+
+        if (request.getEstimatedCost() != null
+                && request.getEstimatedCost() > 10000000) {
+
+            throw new BadRequestException(
+                    "Estimated cost exceeds allowed limit"
+            );
+        }
+    }
+
 }
