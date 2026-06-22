@@ -238,4 +238,31 @@ public class TripService {
         }
     }
 
+    private void validateTripUpdate(TripUpdateRequestDto request) {
+
+        if (request.getStartDate() != null && request.getEndDate() != null) {
+
+            if (request.getEndDate().isBefore(request.getStartDate())) {
+                throw new BadRequestException("End date cannot be before start data");
+            }
+
+            if (request.getEndDate().isEqual(request.getStartDate())) {
+                throw new BadRequestException("Trip duration must be greater than zero");
+            }
+        }
+
+        if (request.getMaxTravelers() != null && request.getMaxTravelers() > 20) {
+
+            throw new BadRequestException("Maximum travelers allowed is 20");
+        }
+
+        if (request.getEstimatedCost() != null
+                && request.getEstimatedCost() > 10000000) {
+
+            throw new BadRequestException(
+                    "Estimated cost exceeds allowed limit"
+            );
+        }
+    }
+
 }
