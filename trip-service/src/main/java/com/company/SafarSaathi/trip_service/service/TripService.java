@@ -1,6 +1,8 @@
 package com.company.SafarSaathi.trip_service.service;
 
 
+import com.company.SafarSaathi.common.events.TripCancelledEvent;
+import com.company.SafarSaathi.common.events.TripCompletedEvent;
 import com.company.SafarSaathi.common.events.TripCreatedEvent;
 import com.company.SafarSaathi.common.events.TripUpdatedEvent;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
@@ -212,6 +214,29 @@ public class TripService {
         trip.setStatus(status);
 
         Trip saved = tripRepository.save(trip);
+
+        if (status == TripStatus.CANCELLED) {
+
+            TripCancelledEvent event =
+                    TripCancelledEvent.builder()
+                            .tripId(saved.getId())
+                            .userId(saved.getUserId())
+                            .build();
+
+            tripEventProducer.publishTripCancelled(event);
+        }
+
+        if (status == TripStatus.COMPLETED) {
+
+            TripCompletedEvent event =
+                    TripCompletedEvent.builder()
+                            .tripId(saved.getId())
+                            .userId(saved.getUserId())
+                            .build();
+
+            tripEventProducer.publishTripCompleted(event);
+        }
+
         log.info("Trip status updated to {} for ID: {}",status, tripId);
         return modelMapper.map(saved, TripDto.class);
     }
