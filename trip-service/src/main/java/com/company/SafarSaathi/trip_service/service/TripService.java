@@ -315,4 +315,50 @@ public class TripService {
         trip.setPrivate(request.isPrivate());
     }
 
+
+    private void validateStatusTransition(
+            TripStatus currentStatus,
+            TripStatus newStatus
+    ) {
+
+        if (currentStatus == newStatus) {
+            throw new BadRequestException(
+                    "Trip is already in status: " + currentStatus
+            );
+        }
+
+        switch (currentStatus) {
+
+            case PLANNED -> {
+
+                if (newStatus != TripStatus.ONGOING
+                        && newStatus != TripStatus.CANCELLED) {
+
+                    throw new BadRequestException(
+                            "PLANNED trip can only be moved to ONGOING or CANCELLED"
+                    );
+                }
+            }
+
+            case ONGOING -> {
+
+                if (newStatus != TripStatus.COMPLETED
+                        && newStatus != TripStatus.CANCELLED) {
+
+                    throw new BadRequestException(
+                            "ONGOING trip can only be moved to COMPLETED or CANCELLED"
+                    );
+                }
+            }
+
+            case COMPLETED -> throw new BadRequestException(
+                    "Completed trips cannot be modified"
+            );
+
+            case CANCELLED -> throw new BadRequestException(
+                    "Cancelled trips cannot be modified"
+            );
+        }
+    }
+
 }
