@@ -272,4 +272,45 @@ public class TripService {
         }
     }
 
+
+    private void updateTripFields(
+            Trip trip,
+            TripUpdateRequestDto request
+    ) {
+
+        if (request.getDestination() != null) {
+            trip.setDestination(request.getDestination());
+        }
+
+        if (request.getOrigin() != null) {
+            trip.setOrigin(request.getOrigin());
+        }
+
+        if (request.getStartDate() != null) {
+            trip.setStartDate(request.getStartDate());
+        }
+
+        if (request.getEndDate() != null) {
+            trip.setEndDate(request.getEndDate());
+        }
+
+        if (request.getModeOfTravel() != null) {
+            trip.setModeOfTravel(request.getModeOfTravel());
+        }
+
+        if (request.getMaxTravelers() != null) {
+            trip.setMaxTravelers(request.getMaxTravelers());
+        }
+
+        if (request.getDescription() != null) {
+            trip.setDescription(request.getDescription());
+        }
+
+        if (request.getEstimatedCost() != null) {
+            trip.setEstimatedCost(request.getEstimatedCost());
+        }
+
+        trip.setPrivate(request.isPrivate());
+    }
+
 }
