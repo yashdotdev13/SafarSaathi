@@ -1,11 +1,10 @@
-package com.company.SafarSaathi.trip_service.service;
+package com.company.SafarSaathi.trip_service.kafka;
 
 
 import com.company.SafarSaathi.common.events.TripCancelledEvent;
 import com.company.SafarSaathi.common.events.TripCompletedEvent;
 import com.company.SafarSaathi.common.events.TripCreatedEvent;
 import com.company.SafarSaathi.common.events.TripUpdatedEvent;
-import com.company.SafarSaathi.trip_service.kafka.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

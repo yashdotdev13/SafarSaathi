@@ -1,6 +1,7 @@
 package com.company.SafarSaathi.trip_service.service;
 
 
+import com.company.SafarSaathi.common.events.TripCreatedEvent;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
 import com.company.SafarSaathi.trip_service.dtos.TripCreateRequestDto;
 import com.company.SafarSaathi.trip_service.dtos.TripDto;
@@ -10,6 +11,7 @@ import com.company.SafarSaathi.trip_service.enums.ModeOfTravel;
 import com.company.SafarSaathi.trip_service.enums.TripStatus;
 import com.company.SafarSaathi.trip_service.exceptions.BadRequestException;
 import com.company.SafarSaathi.trip_service.exceptions.ResourceNotFoundException;
+import com.company.SafarSaathi.trip_service.kafka.TripEventProducer;
 import com.company.SafarSaathi.trip_service.repository.TripRepository;
 import com.company.SafarSaathi.trip_service.utils.GeocodingUtil;
 import com.company.SafarSaathi.trip_service.utils.TripSpecification;
@@ -36,6 +38,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final ModelMapper modelMapper;
     private final GeocodingUtil geocodingUtil;
+    private final TripEventProducer tripEventProducer;
 
 
 
@@ -69,6 +72,22 @@ public class TripService {
 
 
         Trip savedTrip = tripRepository.save(trip);
+
+        TripCreatedEvent event =
+                TripCreatedEvent.builder()
+                        .tripId(savedTrip.getId())
+                        .userId(savedTrip.getUserId())
+                        .origin(savedTrip.getOrigin())
+                        .destination(savedTrip.getDestination())
+                        .startDate(savedTrip.getStartDate())
+                        .endDate(savedTrip.getEndDate())
+                        .maxTravelers(savedTrip.getMaxTravelers())
+                        .modeOfTravel(
+                                savedTrip.getModeOfTravel().name()
+                        )
+                        .build();
+
+        tripEventProducer.publishTripCreated(event);
         log.info("Trip created with ID: {}", savedTrip.getId());
 
         return modelMapper.map(savedTrip, TripDto.class);

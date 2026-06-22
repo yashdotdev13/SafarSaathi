@@ -24,5 +24,6 @@ public class TripCreatedEvent {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    private String modeOTravel;
+    private Integer maxTravelers;
+    private String modeOfTravel;
 }
