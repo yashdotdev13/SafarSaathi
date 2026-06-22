@@ -40,6 +40,10 @@ public class TripService {
 
 
     public TripDto createTrip(TripCreateRequestDto request){
+
+        validateTripCreation(request);
+
+
         Long userId = UserContextHolder.getCurrentUserId();
 
         Trip trip = modelMapper.map(request, Trip.class);
@@ -94,6 +98,9 @@ public class TripService {
     }
 
     public TripDto updateTrip(Long tripId, TripUpdateRequestDto request) {
+
+        validateTripUpdate(request);
+
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found with ID: " + tripId));
 
