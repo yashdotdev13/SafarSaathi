@@ -21,6 +21,8 @@ public class TripEventConsumer {
 
     private final NotificationRepository notificationRepository;
 
+
+
     @KafkaListener(
             topics = "trip-created",
             groupId = "notification-service-group"
