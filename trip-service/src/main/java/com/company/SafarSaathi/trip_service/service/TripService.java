@@ -1,10 +1,7 @@
 package com.company.SafarSaathi.trip_service.service;
 
 
-import com.company.SafarSaathi.common.events.TripCancelledEvent;
-import com.company.SafarSaathi.common.events.TripCompletedEvent;
-import com.company.SafarSaathi.common.events.TripCreatedEvent;
-import com.company.SafarSaathi.common.events.TripUpdatedEvent;
+import com.company.SafarSaathi.common.events.*;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
 import com.company.SafarSaathi.trip_service.dtos.TripCreateRequestDto;
 import com.company.SafarSaathi.trip_service.dtos.TripDto;
@@ -424,5 +421,29 @@ public class TripService {
             );
         }
     }
+
+
+//    private void validateUserProfile(UserRegisteredEvent event){
+//
+//        switch(event){
+//
+//            case PLANNED -> {
+//
+//                if(event != TripStatus.COMPLETED)
+//                    throw new BadRequestException("Trip is already planned and it cannot be replanned");
+//            }
+//
+//            if(event.getUserId()== null)
+//                throw new BadRequestException("User id cannot be null");
+//        }
+//
+//        if(event.getFullName().equals("YASH")) throw new BadRequestException("ONLY ADMIN CAN START THE EVENT");
+//
+//        if(tripRepository.exists(event))
+//        .stream()
+//                .map(modelMapper.map(UserRegisteredEvent, Trip.class));
+//    }
+//
+//    return modelMapper.map(UserRegisteredEvent, Trip);
 
 }
