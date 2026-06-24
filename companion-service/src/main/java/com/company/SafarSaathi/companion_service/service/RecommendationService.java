@@ -6,6 +6,8 @@ import com.company.SafarSaathi.companion_service.client.UserServiceClient;
 import com.company.SafarSaathi.companion_service.dtos.external.TripResponse;
 import com.company.SafarSaathi.companion_service.dtos.external.UserProfileResponse;
 import com.company.SafarSaathi.companion_service.dtos.response.RecommendationResponse;
+import com.company.SafarSaathi.companion_service.entity.CompanionPreference;
+import com.company.SafarSaathi.companion_service.repository.CompanionPreferenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,17 @@ public class RecommendationService {
 
     private final TripServiceClient tripServiceClient;
     private final UserServiceClient userServiceClient;
+    private final CompanionPreferenceRepository preferenceRepository;
 
     public List<RecommendationResponse> getRecommendations() {
 
         Long currentUserId =
                 UserContextHolder.getCurrentUserId();
+
+        CompanionPreference preference =
+                preferenceRepository
+                        .findByUserId(currentUserId)
+                        .orElse(null);
 
         List<TripResponse> myTrips =
                 tripServiceClient.getMyTrips();
@@ -55,16 +63,26 @@ public class RecommendationService {
 
                 .map(candidateTrip -> {
 
-                    int score =
+                    UserProfileResponse profile =
+                            userServiceClient.getUserProfile(
+                                    candidateTrip.getUserId()
+                            );
+
+                    int tripScore =
                             calculateScore(
                                     referenceTrip,
                                     candidateTrip
                             );
 
-                    UserProfileResponse profile =
-                            userServiceClient.getUserProfile(
-                                    candidateTrip.getUserId()
+                    int preferenceScore =
+                            calculatePreferenceScore(
+                                    preference,
+                                    profile,
+                                    candidateTrip
                             );
+
+                    int finalScore =
+                            tripScore + preferenceScore;
 
                     return RecommendationResponse.builder()
                             .userId(profile.getUserId())
@@ -79,7 +97,7 @@ public class RecommendationService {
                             .tripMode(
                                     candidateTrip.getModeOfTravel()
                             )
-                            .matchScore(score)
+                            .matchScore(finalScore)
                             .build();
                 })
 
@@ -142,6 +160,138 @@ public class RecommendationService {
         }
 
         return score;
+    }
+
+    private int calculatePreferenceScore(
+            CompanionPreference preference,
+            UserProfileResponse candidateProfile,
+            TripResponse candidateTrip
+    ) {
+
+        if (preference == null) {
+            return 0;
+        }
+
+        int score = 0;
+
+        score += calculateAgeScore(
+                preference,
+                candidateProfile
+        );
+
+        score += calculateGenderScore(
+                preference,
+                candidateProfile
+        );
+
+        score += calculateSmokerScore(
+                preference,
+                candidateProfile
+        );
+
+        score += calculateDrinkerScore(
+                preference,
+                candidateProfile
+        );
+
+        score += calculateTripModePreferenceScore(
+                preference,
+                candidateTrip
+        );
+
+        return score;
+    }
+
+    private int calculateAgeScore(
+            CompanionPreference preference,
+            UserProfileResponse profile
+    ) {
+
+        if (profile.getAge() == null) {
+            return 0;
+        }
+
+        Integer min = preference.getPreferredAgeMin();
+        Integer max = preference.getPreferredAgeMax();
+
+        if (min == null || max == null) {
+            return 0;
+        }
+
+        return profile.getAge() >= min
+                && profile.getAge() <= max
+                ? 10
+                : 0;
+    }
+
+    private int calculateGenderScore(
+            CompanionPreference preference,
+            UserProfileResponse profile
+    ) {
+
+        if (preference.getPreferredGender() == null
+                || profile.getGender() == null) {
+            return 0;
+        }
+
+        return preference.getPreferredGender()
+                .equalsIgnoreCase(
+                        profile.getGender()
+                )
+                ? 5
+                : 0;
+    }
+
+    private int calculateSmokerScore(
+            CompanionPreference preference,
+            UserProfileResponse profile
+    ) {
+
+        if (preference.getSmokerOk() == null) {
+            return 0;
+        }
+
+        if (!preference.getSmokerOk()
+                && profile.isSmoker()) {
+            return 0;
+        }
+
+        return 5;
+    }
+
+    private int calculateDrinkerScore(
+            CompanionPreference preference,
+            UserProfileResponse profile
+    ) {
+
+        if (preference.getDrinkerOk() == null) {
+            return 0;
+        }
+
+        if (!preference.getDrinkerOk()
+                && profile.isDrinker()) {
+            return 0;
+        }
+
+        return 5;
+    }
+
+    private int calculateTripModePreferenceScore(
+            CompanionPreference preference,
+            TripResponse candidateTrip
+    ) {
+
+        if (preference.getPreferredTripMode() == null
+                || candidateTrip.getModeOfTravel() == null) {
+            return 0;
+        }
+
+        return preference.getPreferredTripMode()
+                .equalsIgnoreCase(
+                        candidateTrip.getModeOfTravel()
+                )
+                ? 10
+                : 0;
     }
 
     private boolean hasDateOverlap(
