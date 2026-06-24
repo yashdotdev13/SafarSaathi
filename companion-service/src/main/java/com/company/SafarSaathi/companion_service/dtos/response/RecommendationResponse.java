@@ -14,6 +14,8 @@ public class RecommendationResponse {
 
     private String fullName;
 
+    private String destination;
+
     private Integer matchScore;
 
     private String travelStyle;
