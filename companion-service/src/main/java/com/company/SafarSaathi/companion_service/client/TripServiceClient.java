@@ -14,6 +14,6 @@ import java.util.List;
 )
 public interface TripServiceClient {
 
-    @GetMapping("/core/public")
+    @GetMapping("/trip/core/public")
     List<TripResponse> getAllPublicTrips();
 }
