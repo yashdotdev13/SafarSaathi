@@ -16,4 +16,7 @@ public interface TripServiceClient {
 
     @GetMapping("/trip/core/public")
     List<TripResponse> getAllPublicTrips();
+
+    @GetMapping("/trip/core/me")
+    List<TripResponse> getMyTrips();
 }
