@@ -1,10 +1,7 @@
 package com.company.SafarSaathi.trip_service.service;
 
 
-import com.company.SafarSaathi.common.events.TripCancelledEvent;
-import com.company.SafarSaathi.common.events.TripCompletedEvent;
-import com.company.SafarSaathi.common.events.TripCreatedEvent;
-import com.company.SafarSaathi.common.events.TripUpdatedEvent;
+import com.company.SafarSaathi.common.events.*;
 import com.company.SafarSaathi.trip_service.auth.UserContextHolder;
 import com.company.SafarSaathi.trip_service.dtos.TripCreateRequestDto;
 import com.company.SafarSaathi.trip_service.dtos.TripDto;
@@ -424,5 +421,4 @@ public class TripService {
             );
         }
     }
-
 }
