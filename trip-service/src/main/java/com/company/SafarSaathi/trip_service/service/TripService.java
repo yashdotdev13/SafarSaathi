@@ -421,29 +421,4 @@ public class TripService {
             );
         }
     }
-
-
-//    private void validateUserProfile(UserRegisteredEvent event){
-//
-//        switch(event){
-//
-//            case PLANNED -> {
-//
-//                if(event != TripStatus.COMPLETED)
-//                    throw new BadRequestException("Trip is already planned and it cannot be replanned");
-//            }
-//
-//            if(event.getUserId()== null)
-//                throw new BadRequestException("User id cannot be null");
-//        }
-//
-//        if(event.getFullName().equals("YASH")) throw new BadRequestException("ONLY ADMIN CAN START THE EVENT");
-//
-//        if(tripRepository.exists(event))
-//        .stream()
-//                .map(modelMapper.map(UserRegisteredEvent, Trip.class));
-//    }
-//
-//    return modelMapper.map(UserRegisteredEvent, Trip);
-
 }
