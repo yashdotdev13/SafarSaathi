@@ -78,6 +78,15 @@ spring:
             - name: AuthenticationFilter
 
 
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+
 
 
 eureka:
