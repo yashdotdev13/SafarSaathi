@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class ChatResponse {
 
     private String response;
+
+    private String conversationId;
 }

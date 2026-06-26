@@ -3,7 +3,7 @@ package com.company.SafarSaathi.ai_service.controller;
 
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
-import com.company.SafarSaathi.ai_service.service.AiChatService;
+import com.company.SafarSaathi.ai_service.service.AiAssistantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AiController {
 
-    private final AiChatService aiChatService;
+    private final AiAssistantService aiChatService;
 
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(
