@@ -15,4 +15,7 @@ public class ChatRequest {
 
     @NotBlank(message = "Message cannot be empty")
     private String message;
+
+    // used for maintaining conversation history
+    private String conversationId;
 }
