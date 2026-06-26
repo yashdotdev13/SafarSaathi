@@ -1,6 +1,7 @@
 package com.company.SafarSaathi.ai_service.controller;
 
 
+
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.service.AiAssistantService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AiController {
 
-    private final AiAssistantService aiChatService;
+    private final AiAssistantService aiAssistantService;
 
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(
@@ -26,7 +27,7 @@ public class AiController {
         log.info("Received AI chat request.");
 
         return ResponseEntity.ok(
-                aiChatService.chat(request)
+                aiAssistantService.chat(request)
         );
     }
 }
