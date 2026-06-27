@@ -1,6 +1,7 @@
 package com.company.SafarSaathi.ai_service.conversation.service.Impl;
 
 import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
+import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessage;
 import com.company.SafarSaathi.ai_service.conversation.enums.MessageRole;
 import com.company.SafarSaathi.ai_service.conversation.repository.ConversationMessageRepository;
 import com.company.SafarSaathi.ai_service.conversation.repository.ConversationRepository;
@@ -63,6 +64,15 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public void saveMessage(Conversation conversation, MessageRole role, String content) {
+
+        ConversationMessage message = ConversationMessage.builder()
+                .conversation(conversation)
+                .role(role)
+                .content(content)
+                .build();
+
+        messageRepository.save(message);
+        log.debug("saved {} message for conversation={}",role, conversation.getConversationId());
 
     }
 
