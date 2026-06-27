@@ -78,6 +78,13 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public List<String> getConversationHistory(Conversation conversation) {
-        return List.of();
+
+        return messageRepository
+                .findByConversationOrderByCreatedAtAsc(conversation)
+                .stream()
+                .map(message ->
+                        message.getRole() + ": " + message.getContent()
+                )
+                .toList();
     }
 }
