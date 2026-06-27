@@ -3,6 +3,8 @@ package com.company.SafarSaathi.ai_service.service.impl;
 
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
+import com.company.SafarSaathi.ai_service.prompt.PromptBuilderService;
+import com.company.SafarSaathi.ai_service.prompt.PromptType;
 import com.company.SafarSaathi.ai_service.service.AiAssistantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class AiAssistantServiceimpl implements AiAssistantService {
 
     private final ChatClient chatClient;
+    private final PromptBuilderService promptBuilderService;
 
     @Override
     public ChatResponse chat(ChatRequest request) {
@@ -27,10 +30,17 @@ public class AiAssistantServiceimpl implements AiAssistantService {
                 request.getConversationId()
         );
 
-        String aiResponse = chatClient.prompt()
-                .user(request.getMessage())
-                .call()
-                .content();
+        String prompt =
+                promptBuilderService.buildPrompt(
+                        PromptType.CHAT,
+                        request
+                );
+
+        String aiResponse =
+                chatClient.prompt()
+                        .user(prompt)
+                        .call()
+                        .content();
 
         log.info("AI response generated successfully.");
 
