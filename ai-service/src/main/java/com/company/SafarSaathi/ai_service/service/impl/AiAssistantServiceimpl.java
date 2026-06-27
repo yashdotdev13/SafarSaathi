@@ -1,6 +1,10 @@
 package com.company.SafarSaathi.ai_service.service.impl;
 
 
+import com.company.SafarSaathi.ai_service.auth.UserContextHolder;
+import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
+import com.company.SafarSaathi.ai_service.conversation.enums.MessageRole;
+import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.prompt.PromptBuilderService;
@@ -20,14 +24,25 @@ public class AiAssistantServiceimpl implements AiAssistantService {
 
     private final ChatClient chatClient;
     private final PromptBuilderService promptBuilderService;
+    private final ConversationService conversationService;
 
     @Override
     public ChatResponse chat(ChatRequest request) {
 
         log.info("Received AI chat request.");
 
-        String conversationId = resolveConversationId(
-                request.getConversationId()
+        Long userId = UserContextHolder.getCurrentUserId();
+
+        Conversation conversation =
+                conversationService.getOrCreateConversation(
+                        userId,
+                        request.getConversationId()
+                );
+
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.USER,
+                request.getMessage()
         );
 
         String prompt =
@@ -42,24 +57,22 @@ public class AiAssistantServiceimpl implements AiAssistantService {
                         .call()
                         .content();
 
-        log.info("AI response generated successfully.");
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.ASSISTANT,
+                aiResponse
+        );
+
+        log.info(
+                "AI response generated successfully. conversationId={}",
+                conversation.getConversationId()
+        );
 
         return ChatResponse.builder()
-                .conversationId(conversationId)
+                .conversationId(
+                        conversation.getConversationId().toString()
+                )
                 .response(aiResponse)
                 .build();
-    }
-
-    private String resolveConversationId(
-            String conversationId
-    ) {
-
-        if (conversationId == null
-                || conversationId.isBlank()) {
-
-            return UUID.randomUUID().toString();
-        }
-
-        return conversationId;
     }
 }
