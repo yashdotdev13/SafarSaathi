@@ -3,6 +3,7 @@ package com.company.SafarSaathi.ai_service.service.impl;
 
 import com.company.SafarSaathi.ai_service.auth.UserContextHolder;
 import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
+import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessage;
 import com.company.SafarSaathi.ai_service.conversation.enums.MessageRole;
 import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -45,11 +47,22 @@ public class AiAssistantServiceimpl implements AiAssistantService {
                 request.getMessage()
         );
 
+        List<ConversationMessage> history =
+                conversationService.getConversationHistory(
+                        conversation
+                );
+
         String prompt =
                 promptBuilderService.buildPrompt(
                         PromptType.CHAT,
-                        request
+                        request,
+                        history
                 );
+
+        log.debug(
+                "Generated prompt with {} conversation messages.",
+                history.size()
+        );
 
         String aiResponse =
                 chatClient.prompt()
