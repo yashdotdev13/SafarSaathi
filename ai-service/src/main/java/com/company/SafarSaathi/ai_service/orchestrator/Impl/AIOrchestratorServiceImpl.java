@@ -67,18 +67,33 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     }
 
 
-    private ChatResponse handleToolRequest(ChatRequest request,IntentDetectionResult intent) {
+    private ChatResponse handleToolRequest(
+            ChatRequest request,
+            IntentDetectionResult intent
+    ) {
 
-        log.info("Handling Tool Request for {}",intent.getIntentType());
+        log.info(
+                "Handling tool request for intent: {}",
+                intent.getIntentType()
+        );
 
+        ToolRequest toolRequest =
+                ToolRequest.builder()
+                        .toolType(
+                                ToolType.valueOf(
+                                        intent.getIntentType().name()
+                                )
+                        )
+                        .conversationId(
+                                request.getConversationId()
+                        )
+                        .query(
+                                request.getMessage()
+                        )
+                        .build();
 
-        ToolRequest toolRequest = ToolRequest.builder()
-                .toolType(ToolType.valueOf(intent.getIntentType().name()))
-                .conversationId(request.getConversationId())
-                .query(request.getMessage())
-                .build();
-
-        ToolResponse toolResponse = toolExecutor.execute(toolRequest);
+        ToolResponse toolResponse =
+                toolExecutor.execute(toolRequest);
 
         String enrichedPrompt =
                 promptEnrichmentService.enrich(
@@ -86,37 +101,9 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
                         toolResponse
                 );
 
-        String aiResponse =
-                aiChatService.generateResponse(
-                        enrichedPrompt
-                );
-
-        Conversation conversation =
-                conversationService.getOrCreateConversation(
-                        request.getUserId(),
-                        request.getConversationId()
-                );
-
-        conversationService.saveMessage(
-                conversation,
-                MessageRole.USER,
-                request.getMessage()
+        return aiChatService.chat(
+                request,
+                enrichedPrompt
         );
-
-        conversationService.saveMessage(
-                conversation,
-                MessageRole.ASSISTANT,
-                aiResponse
-        );
-
-
-        return ChatResponse.builder()
-                .conversationId(
-                        request.getConversationId()
-                )
-                .response(
-                        aiResponse
-                )
-                .build();
     }
 }
