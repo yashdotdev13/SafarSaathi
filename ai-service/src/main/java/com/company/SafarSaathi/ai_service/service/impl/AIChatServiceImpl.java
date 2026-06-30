@@ -65,10 +65,8 @@ public class AIChatServiceImpl implements AIChatService {
         );
 
         String aiResponse =
-                chatClient.prompt()
-                        .user(prompt)
-                        .call()
-                        .content();
+                generateResponse(prompt);
+
 
         conversationService.saveMessage(
                 conversation,
