@@ -1,12 +1,15 @@
 package com.company.SafarSaathi.ai_service.orchestrator.Impl;
 
 
+import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
+import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
 import com.company.SafarSaathi.ai_service.service.AIChatService;
+import com.company.SafarSaathi.ai_service.service.prompt.PromptEnrichmentService;
 import com.company.SafarSaathi.ai_service.tool.ToolExecutor;
 import com.company.SafarSaathi.ai_service.tool.ToolRequest;
 import com.company.SafarSaathi.ai_service.tool.ToolResponse;
@@ -23,8 +26,9 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
     private final IntentDetectionService intentDetectionService;
     private final ToolExecutor toolExecutor;
-    private final ChatClient chatClint;
     private final AIChatService aiChatService;
+    private final PromptEnrichmentService promptEnrichmentService;
+    private final ConversationService conversationService;
 
 
     @Override
@@ -63,22 +67,43 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     }
 
 
-    private ChatResponse handleToolRequest(ChatRequest request,IntentDetectionResult intent) {
+    private ChatResponse handleToolRequest(
+            ChatRequest request,
+            IntentDetectionResult intent
+    ) {
 
-        log.info("Handling Tool Request for {}",intent.getIntentType());
+        log.info(
+                "Handling tool request for intent: {}",
+                intent.getIntentType()
+        );
 
+        ToolRequest toolRequest =
+                ToolRequest.builder()
+                        .toolType(
+                                ToolType.valueOf(
+                                        intent.getIntentType().name()
+                                )
+                        )
+                        .conversationId(
+                                request.getConversationId()
+                        )
+                        .query(
+                                request.getMessage()
+                        )
+                        .build();
 
-        ToolRequest toolRequest = ToolRequest.builder()
-                .toolType(ToolType.valueOf(intent.getIntentType().name()))
-                .conversationId(request.getConversationId())
-                .query(request.getMessage())
-                .build();
+        ToolResponse toolResponse =
+                toolExecutor.execute(toolRequest);
 
-        ToolResponse toolResponse = toolExecutor.execute(toolRequest);
+        String enrichedPrompt =
+                promptEnrichmentService.enrich(
+                        request,
+                        toolResponse
+                );
 
-        return ChatResponse.builder()
-                .conversationId(request.getConversationId())
-                .response(toolResponse.getData().toString())
-                .build();
+        return aiChatService.chat(
+                request,
+                enrichedPrompt
+        );
     }
 }

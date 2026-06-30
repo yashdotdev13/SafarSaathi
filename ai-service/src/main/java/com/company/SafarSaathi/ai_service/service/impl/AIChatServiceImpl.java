@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.company.SafarSaathi.ai_service.auth.UserContextHolder.getCurrentUserId;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class AIChatServiceImpl implements AIChatService {
 
         log.info("Received AI chat request.");
 
-        Long userId = UserContextHolder.getCurrentUserId();
+        Long userId = getCurrentUserId();
 
         Conversation conversation =
                 conversationService.getOrCreateConversation(
@@ -65,10 +67,8 @@ public class AIChatServiceImpl implements AIChatService {
         );
 
         String aiResponse =
-                chatClient.prompt()
-                        .user(prompt)
-                        .call()
-                        .content();
+                generateResponse(prompt);
+
 
         conversationService.saveMessage(
                 conversation,
@@ -87,5 +87,51 @@ public class AIChatServiceImpl implements AIChatService {
                 )
                 .response(aiResponse)
                 .build();
+    }
+
+    @Override
+    public ChatResponse chat(ChatRequest request, String prompt) {
+
+        log.info("Processing AI chat using enriched prompt.");
+
+        Long userId = UserContextHolder.getCurrentUserId();
+
+        Conversation conversation =
+                conversationService.getOrCreateConversation(
+                        userId,
+                        request.getConversationId()
+                );
+
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.USER,
+                request.getMessage()
+        );
+
+        String aiResponse = generateResponse(prompt);
+
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.ASSISTANT,
+                aiResponse
+        );
+
+        return ChatResponse.builder()
+                .conversationId(
+                        conversation.getConversationId().toString()
+                )
+                .response(aiResponse)
+                .build();
+    }
+
+    @Override
+    public String generateResponse(String prompt) {
+
+
+        log.info("Sending enriched prompt to Gemini");
+        return chatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();
     }
 }

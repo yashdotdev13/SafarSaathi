@@ -44,8 +44,10 @@ public class ConversationMessage {
     @Column(nullable = false, length = 20)
     private MessageRole role;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(
+            nullable = false,
+            columnDefinition = "TEXT"
+    )
     private String content;
 
     @Column(nullable = false, updatable = false)
