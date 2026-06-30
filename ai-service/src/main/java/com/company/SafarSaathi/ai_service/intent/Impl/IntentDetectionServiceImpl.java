@@ -1,0 +1,89 @@
+package com.company.SafarSaathi.ai_service.intent.Impl;
+
+import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
+import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
+import com.company.SafarSaathi.ai_service.intent.IntentType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Locale;
+import java.util.Map;
+
+@Service
+@Slf4j
+public class IntentDetectionServiceImpl
+        implements IntentDetectionService {
+
+    @Override
+    public IntentDetectionResult detectIntent(String userQuery) {
+
+        log.info("Detecting intent for query: {}", userQuery);
+
+        String query = userQuery.toLowerCase(Locale.ROOT);
+
+        // Highest Priority
+        if (containsCompanionKeywords(query)) {
+            return IntentDetectionResult.builder()
+                    .intentType(IntentType.COMPANION)
+                    .confidence(0.95)
+                    .parameters(Map.of())
+                    .build();
+        }
+
+        if (containsTripKeywords(query)) {
+            return IntentDetectionResult.builder()
+                    .intentType(IntentType.TRIP)
+                    .confidence(0.90)
+                    .parameters(Map.of())
+                    .build();
+        }
+
+        if (containsUserKeywords(query)) {
+            return IntentDetectionResult.builder()
+                    .intentType(IntentType.USER)
+                    .confidence(0.90)
+                    .parameters(Map.of())
+                    .build();
+        }
+
+        return IntentDetectionResult.builder()
+                .intentType(IntentType.GENERAL_CHAT)
+                .confidence(0.60)
+                .parameters(Map.of())
+                .build();
+    }
+
+    private boolean containsTripKeywords(String query) {
+
+        return query.contains("trip")
+                || query.contains("destination")
+                || query.contains("itinerary")
+                || query.contains("vacation")
+                || query.contains("journey")
+                || query.contains("my trips")
+                || query.contains("upcoming trip")
+                || query.contains("completed trip");
+    }
+
+    private boolean containsCompanionKeywords(
+            String query
+    ) {
+
+        return query.contains("companion")
+                || query.contains("travel buddy")
+                || query.contains("partner")
+                || query.contains("matching")
+                || query.contains("recommend companion");
+    }
+
+    private boolean containsUserKeywords(
+            String query
+    ) {
+
+        return query.contains("profile")
+                || query.contains("account")
+                || query.contains("my details")
+                || query.contains("preferences");
+    }
+
+}
