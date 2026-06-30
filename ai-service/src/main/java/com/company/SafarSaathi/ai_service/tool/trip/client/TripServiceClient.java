@@ -12,7 +12,7 @@ import java.util.List;
 )
 public interface TripServiceClient {
 
-    @GetMapping("/core/me")
+    @GetMapping("/trip/core/me")
     List<TripResponse> getMyTrips();
 
 }
