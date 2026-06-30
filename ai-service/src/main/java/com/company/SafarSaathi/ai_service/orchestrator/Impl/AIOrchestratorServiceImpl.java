@@ -8,6 +8,9 @@ import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
 import com.company.SafarSaathi.ai_service.service.AIChatService;
 import com.company.SafarSaathi.ai_service.tool.ToolExecutor;
+import com.company.SafarSaathi.ai_service.tool.ToolRequest;
+import com.company.SafarSaathi.ai_service.tool.ToolResponse;
+import com.company.SafarSaathi.ai_service.tool.ToolType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -63,6 +66,19 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     private ChatResponse handleToolRequest(ChatRequest request,IntentDetectionResult intent) {
 
         log.info("Handling Tool Request for {}",intent.getIntentType());
-        return null;
+
+
+        ToolRequest toolRequest = ToolRequest.builder()
+                .toolType(ToolType.valueOf(intent.getIntentType().name()))
+                .conversationId(request.getConversationId())
+                .query(request.getMessage())
+                .build();
+
+        ToolResponse toolResponse = toolExecutor.execute(toolRequest);
+
+        return ChatResponse.builder()
+                .conversationId(request.getConversationId())
+                .response(toolResponse.getData().toString())
+                .build();
     }
 }
