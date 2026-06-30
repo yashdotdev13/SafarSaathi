@@ -1,6 +1,8 @@
 package com.company.SafarSaathi.ai_service.orchestrator.Impl;
 
 
+import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
+import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
@@ -26,6 +28,7 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     private final ToolExecutor toolExecutor;
     private final AIChatService aiChatService;
     private final PromptEnrichmentService promptEnrichmentService;
+    private final ConversationService conversationService;
 
 
     @Override
@@ -87,6 +90,25 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
                 aiChatService.generateResponse(
                         enrichedPrompt
                 );
+
+        Conversation conversation =
+                conversationService.getOrCreateConversation(
+                        request.getUserId(),
+                        request.getConversationId()
+                );
+
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.USER,
+                request.getMessage()
+        );
+
+        conversationService.saveMessage(
+                conversation,
+                MessageRole.ASSISTANT,
+                aiResponse
+        );
+
 
         return ChatResponse.builder()
                 .conversationId(
