@@ -7,6 +7,7 @@ import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
 import com.company.SafarSaathi.ai_service.service.AIChatService;
+import com.company.SafarSaathi.ai_service.service.prompt.PromptEnrichmentService;
 import com.company.SafarSaathi.ai_service.tool.ToolExecutor;
 import com.company.SafarSaathi.ai_service.tool.ToolRequest;
 import com.company.SafarSaathi.ai_service.tool.ToolResponse;
@@ -23,8 +24,8 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
     private final IntentDetectionService intentDetectionService;
     private final ToolExecutor toolExecutor;
-    private final ChatClient chatClint;
     private final AIChatService aiChatService;
+    private final PromptEnrichmentService promptEnrichmentService;
 
 
     @Override
@@ -76,9 +77,24 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
         ToolResponse toolResponse = toolExecutor.execute(toolRequest);
 
+        String enrichedPrompt =
+                promptEnrichmentService.enrich(
+                        request,
+                        toolResponse
+                );
+
+        String aiResponse =
+                aiChatService.generateResponse(
+                        enrichedPrompt
+                );
+
         return ChatResponse.builder()
-                .conversationId(request.getConversationId())
-                .response(toolResponse.getData().toString())
+                .conversationId(
+                        request.getConversationId()
+                )
+                .response(
+                        aiResponse
+                )
                 .build();
     }
 }
