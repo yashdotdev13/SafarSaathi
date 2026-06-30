@@ -26,7 +26,24 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     public ChatResponse process(ChatRequest request) {
 
         log.info("Processing request through AI orchestrator");
-        return null;
+
+        IntentDetectionResult intent = intentDetectionService.detectIntent(
+                request.getMessage());
+
+
+        log.info("Detected intent: {}", intent.getIntentType());
+
+        switch(intent.getIntentType()) {
+            case GENERAL_CHAT:
+                return handleGeneralChat(request);
+
+            case TRIP:
+            case USER:
+            case COMPANION:
+                return handleToolRequest(request, intent);
+
+            default: throw new IllegalStateException("Unsupported intent: "+ intent.getIntentType());
+        }
     }
 
 
