@@ -15,16 +15,22 @@ public class IntentDetectionServiceImpl
         implements IntentDetectionService {
 
     @Override
-    public IntentDetectionResult detectIntent(
-            String userQuery
-    ) {
+    public IntentDetectionResult detectIntent(String userQuery) {
 
         log.info("Detecting intent for query: {}", userQuery);
 
         String query = userQuery.toLowerCase(Locale.ROOT);
 
-        if (containsTripKeywords(query)) {
+        // Highest Priority
+        if (containsCompanionKeywords(query)) {
+            return IntentDetectionResult.builder()
+                    .intentType(IntentType.COMPANION)
+                    .confidence(0.95)
+                    .parameters(Map.of())
+                    .build();
+        }
 
+        if (containsTripKeywords(query)) {
             return IntentDetectionResult.builder()
                     .intentType(IntentType.TRIP)
                     .confidence(0.90)
@@ -32,17 +38,7 @@ public class IntentDetectionServiceImpl
                     .build();
         }
 
-        if (containsCompanionKeywords(query)) {
-
-            return IntentDetectionResult.builder()
-                    .intentType(IntentType.COMPANION)
-                    .confidence(0.90)
-                    .parameters(Map.of())
-                    .build();
-        }
-
         if (containsUserKeywords(query)) {
-
             return IntentDetectionResult.builder()
                     .intentType(IntentType.USER)
                     .confidence(0.90)
@@ -57,18 +53,16 @@ public class IntentDetectionServiceImpl
                 .build();
     }
 
-    private boolean containsTripKeywords(
-            String query
-    ) {
+    private boolean containsTripKeywords(String query) {
 
         return query.contains("trip")
-                || query.contains("travel")
                 || query.contains("destination")
                 || query.contains("itinerary")
                 || query.contains("vacation")
                 || query.contains("journey")
-                || query.contains("plan my trip")
-                || query.contains("upcoming trip");
+                || query.contains("my trips")
+                || query.contains("upcoming trip")
+                || query.contains("completed trip");
     }
 
     private boolean containsCompanionKeywords(
