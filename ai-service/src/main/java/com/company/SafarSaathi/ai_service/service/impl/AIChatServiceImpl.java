@@ -88,4 +88,15 @@ public class AIChatServiceImpl implements AIChatService {
                 .response(aiResponse)
                 .build();
     }
+
+    @Override
+    public String generateResponse(String prompt) {
+
+
+        log.info("Sending enriched prompt to Gemini");
+        return chatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();
+    }
 }

@@ -10,4 +10,6 @@ public interface AIChatService {
             ChatRequest request
     );
 
+    String generateResponse(String prompt);
+
 }
