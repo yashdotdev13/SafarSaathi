@@ -1,8 +1,6 @@
 package com.company.SafarSaathi.ai_service.tool.Impl;
 
-
 import com.company.SafarSaathi.ai_service.tool.*;
-import com.company.SafarSaathi.ai_service.tool.exception.ToolExecutionException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,29 +16,88 @@ import java.util.Map;
 public class ToolExecutorServiceImpl implements ToolExecutor {
 
     private final List<Tool> tools;
-    private final Map<ToolType, Tool> toolRegistry = new EnumMap<>(ToolType.class);
+
+    private final Map<ToolType, Tool> toolRegistry =
+            new EnumMap<>(ToolType.class);
 
     @PostConstruct
-    public void initialize(){
-        tools.forEach(tool -> {
-            toolRegistry.put(tool.getToolType(), tool);
+    public void initialize() {
 
-        log.info("Registered tool: {}",tool.getToolType());
+        log.info("Initializing Tool Registry...");
 
-        });
+        for (Tool tool : tools) {
+
+            toolRegistry.put(
+                    tool.getToolType(),
+                    tool
+            );
+
+            log.info(
+                    "Registered Tool: {}",
+                    tool.getToolType()
+            );
+        }
+
+        log.info(
+                "Tool Registry initialized successfully. Registered {} tools.",
+                toolRegistry.size()
+        );
     }
-
 
     @Override
     public ToolResponse execute(ToolRequest request) {
 
+        log.info(
+                "Executing Tool: {}",
+                request.getToolType()
+        );
 
-        Tool tool = toolRegistry.get(request.getToolType());
+        Tool tool = toolRegistry.get(
+                request.getToolType()
+        );
 
-        if(tool == null){
-            throw new ToolExecutionException("No tool registered for type: "+request.getToolType());
+        if (tool == null) {
+
+            throw new ToolException(
+                    "No tool registered for type: "
+                            + request.getToolType()
+            );
         }
-        log.info("Executing tool: {}",request.getToolType());
-        return tool.execute(request);
+
+        try {
+
+            ToolResponse response = tool.execute(request);
+
+            log.info(
+                    "Tool executed successfully: {}",
+                    request.getToolType()
+            );
+
+            return response;
+
+        } catch (ToolException ex) {
+
+            log.error(
+                    "Tool execution failed: {}",
+                    request.getToolType(),
+                    ex
+            );
+
+            throw ex;
+
+        } catch (Exception ex) {
+
+            log.error(
+                    "Unexpected error while executing tool: {}",
+                    request.getToolType(),
+                    ex
+            );
+
+            throw new ToolException(
+                    "Failed to execute tool: "
+                            + request.getToolType(),
+                    ex
+            );
+        }
     }
 }
