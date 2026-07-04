@@ -1,6 +1,7 @@
 package com.company.SafarSaathi.ai_service.tool.trip.Impl;
 
 
+import com.company.SafarSaathi.ai_service.tool.ToolException;
 import com.company.SafarSaathi.ai_service.tool.ToolRequest;
 import com.company.SafarSaathi.ai_service.tool.ToolResponse;
 import com.company.SafarSaathi.ai_service.tool.ToolType;
@@ -29,16 +30,31 @@ public class TripToolImpl implements TripTool {
     @Override
     public ToolResponse execute(ToolRequest request) {
 
+        log.info("Executing Trip Tool");
 
-        log.info("Executing Trip tool,");
+        try {
 
-        List<TripResponse> trips = tripServiceClient.getMyTrips();
+            List<TripResponse> trips =
+                    tripServiceClient.getMyTrips();
 
-        return ToolResponse.builder()
-                .toolType(ToolType.TRIP)
-                .success(true)
-                .message("Trips fetched successfully")
-                .data(trips)
-                .build();
+            return ToolResponse.builder()
+                    .toolType(ToolType.TRIP)
+                    .success(true)
+                    .message("Trips fetched successfully.")
+                    .data(trips)
+                    .build();
+
+        } catch (Exception ex) {
+
+            log.error(
+                    "Failed to fetch trips.",
+                    ex
+            );
+
+            throw new ToolException(
+                    "Unable to fetch trips.",
+                    ex
+            );
+        }
     }
 }
