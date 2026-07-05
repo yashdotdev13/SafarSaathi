@@ -1,4 +1,9 @@
 package com.company.SafarSaathi.ai_service.planner;
 
-public class AIPlanner {
+import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
+import com.company.SafarSaathi.ai_service.planner.enums.ExecutionStrategy;
+
+public interface  AIPlanner {
+
+    ExecutionStrategy createPlan(ChatRequest request);
 }
