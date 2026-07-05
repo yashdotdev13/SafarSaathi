@@ -1,6 +1,6 @@
 package com.company.SafarSaathi.ai_service.planner.executor.Impl;
 
-import com.company.SafarSaathi.ai_service.planner.context.ContextMerger;
+import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.planner.dto.ExecutionPlan;
 import com.company.SafarSaathi.ai_service.planner.dto.PlannedTool;
 import com.company.SafarSaathi.ai_service.planner.executor.PlanExecutor;
@@ -17,36 +17,54 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PlanExecutorImpl
-        implements PlanExecutor {
+public class PlanExecutorImpl implements PlanExecutor {
 
     private final ToolExecutor toolExecutor;
 
-    private final ContextMerger contextMerger;
-
     @Override
-    public String execute(
+    public List<ToolResponse> execute(
             ExecutionPlan executionPlan,
-            String conversationId,
-            String query
+            ChatRequest request
     ) {
+
+
+
+        log.info(
+                "Executing plan with {} tool(s).",
+                executionPlan.getTools().size()
+        );
 
         List<ToolResponse> responses = new ArrayList<>();
 
         for (PlannedTool plannedTool : executionPlan.getTools()) {
 
-            ToolRequest toolRequest =
-                    ToolRequest.builder()
-                            .toolType(plannedTool.getToolType())
-                            .conversationId(conversationId)
-                            .query(query)
-                            .build();
+            log.info(
+                    "Executing tool: {}",
+                    plannedTool.getToolType()
+            );
 
-            responses.add(
-                    toolExecutor.execute(toolRequest)
+            ToolRequest toolRequest = ToolRequest.builder()
+                    .toolType(plannedTool.getToolType())
+                    .conversationId(request.getConversationId())
+                    .query(request.getMessage())
+                    .build();
+
+            ToolResponse response =
+                    toolExecutor.execute(toolRequest);
+
+            responses.add(response);
+
+            log.info(
+                    "Completed tool: {}",
+                    plannedTool.getToolType()
             );
         }
 
-        return contextMerger.merge(responses);
+        log.info(
+                "Successfully executed {} tool(s).",
+                responses.size()
+        );
+
+        return responses;
     }
 }

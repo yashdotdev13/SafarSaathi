@@ -1,21 +1,19 @@
 package com.company.SafarSaathi.ai_service.orchestrator.Impl;
 
-
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
-import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
-import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
 import com.company.SafarSaathi.ai_service.planner.AIPlanner;
+import com.company.SafarSaathi.ai_service.planner.context.ContextMerger;
 import com.company.SafarSaathi.ai_service.planner.dto.ExecutionPlan;
 import com.company.SafarSaathi.ai_service.planner.executor.PlanExecutor;
 import com.company.SafarSaathi.ai_service.service.AIChatService;
 import com.company.SafarSaathi.ai_service.service.prompt.PromptEnrichmentService;
+import com.company.SafarSaathi.ai_service.tool.ToolResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,69 +21,60 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
-    private final IntentDetectionService intentDetectionService;
-    private final AIChatService aiChatService;
-    private final PromptEnrichmentService promptEnrichmentService;
-
     private final AIPlanner aiPlanner;
     private final PlanExecutor planExecutor;
-
+    private final ContextMerger contextMerger;
+    private final PromptEnrichmentService promptEnrichmentService;
+    private final AIChatService aiChatService;
 
     @Override
     public ChatResponse process(ChatRequest request) {
 
-        log.info("Processing request through AI orchestrator");
+        log.info("Processing request through AI Orchestrator.");
 
-        IntentDetectionResult intent = intentDetectionService.detectIntent(
-                request.getMessage());
+        ExecutionPlan executionPlan =
+                aiPlanner.createPlan(request);
 
+        if (executionPlan.getTools().isEmpty()) {
 
-        log.info("Detected intent: {}", intent.getIntentType());
+            log.info("No planning rule matched. Routing to General Chat.");
 
-        switch(intent.getIntentType()) {
-            case GENERAL_CHAT:
-                return handleGeneralChat(request);
-
-            case TRIP:
-            case USER:
-            case COMPANION:
-                return handleToolRequest(request, intent);
-
-            default: throw new IllegalStateException("Unsupported intent: "+ intent.getIntentType());
+            return handleGeneralChat(request);
         }
-    }
 
+        return handleToolRequest(
+                request,
+                executionPlan
+        );
+    }
 
     private ChatResponse handleGeneralChat(
             ChatRequest request
     ) {
 
-        log.info("Handling general chat.");
+        log.info("Handling General Chat.");
 
         return aiChatService.chat(request);
-
     }
-
 
     private ChatResponse handleToolRequest(
             ChatRequest request,
-            IntentDetectionResult intent
+            ExecutionPlan executionPlan
     ) {
 
         log.info(
-                "Handling tool request for intent: {}",
-                intent.getIntentType()
+                "Executing plan with {} tool(s).",
+                executionPlan.getTools().size()
         );
 
-        ExecutionPlan executionPlan =
-                aiPlanner.createPlan(request);
-
-        String mergedContext =
+        List<ToolResponse> responses =
                 planExecutor.execute(
                         executionPlan,
-                        request.getConversationId(),
-                        request.getMessage()
+                        request
                 );
+
+        String mergedContext =
+                contextMerger.merge(responses);
 
         String enrichedPrompt =
                 promptEnrichmentService.enrich(

@@ -13,4 +13,8 @@ public class PlannedTool {
 
     private ToolType toolType;
     private Integer order;
+
+    private boolean required;
+
+    private String reason;
 }
