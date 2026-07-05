@@ -19,30 +19,30 @@ public class RuleEvaluator {
 
     public List<PlannedTool> evaluate(ChatRequest request) {
 
-        List<PlannedTool> plannedTools = new ArrayList<>();
-
-        registry.getRules()
+        List<PlanningRule> rules = registry.getRules()
                 .stream()
                 .sorted(
                         Comparator.comparingInt(PlanningRule::priority)
                                 .reversed()
                 )
-                .forEach(rule -> {
+                .toList();
 
-                    if (rule.matches(request)) {
+        for (PlanningRule rule : rules) {
 
-                        log.info(
-                                "Matched planning rule: {}",
-                                rule.getClass().getSimpleName()
-                        );
+            if (rule.matches(request)) {
 
-                        plannedTools.addAll(
-                                rule.evaluate(request)
-                        );
-                    }
+                log.info(
+                        "Selected planning rule: {} (priority={})",
+                        rule.getClass().getSimpleName(),
+                        rule.priority()
+                );
 
-                });
+                return rule.evaluate(request);
+            }
+        }
 
-        return plannedTools;
+        log.info("No planning rule matched.");
+
+        return List.of();
     }
 }
