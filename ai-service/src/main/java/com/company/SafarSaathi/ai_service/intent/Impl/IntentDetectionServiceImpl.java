@@ -76,14 +76,28 @@ public class IntentDetectionServiceImpl
                 || query.contains("recommend companion");
     }
 
-    private boolean containsUserKeywords(
-            String query
-    ) {
+    private boolean containsUserKeywords(String query) {
 
         return query.contains("profile")
                 || query.contains("account")
                 || query.contains("my details")
-                || query.contains("preferences");
+                || query.contains("preferences")
+                || query.contains("about me")
+                || query.contains("who am i")
+                || query.contains("tell me about myself")
+                || query.contains("myself")
+                || query.contains("my information")
+                || query.contains("my profile")
+                || query.contains("my info")
+                || query.contains("my age")
+                || query.contains("my email")
+                || query.contains("my phone")
+                || query.contains("my city")
+                || query.contains("my country")
+                || query.contains("my lifestyle")
+                || query.contains("my travel style")
+                || query.contains("am i a smoker")
+                || query.contains("am i a drinker");
     }
 
 }
