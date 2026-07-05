@@ -65,15 +65,22 @@ public class IntentDetectionServiceImpl
                 || query.contains("completed trip");
     }
 
-    private boolean containsCompanionKeywords(
-            String query
-    ) {
+    private boolean containsCompanionKeywords(String query) {
 
         return query.contains("companion")
                 || query.contains("travel buddy")
+                || query.contains("buddy")
+                || query.contains("travel partner")
                 || query.contains("partner")
+                || query.contains("recommend companion")
+                || query.contains("recommendation")
+                || query.contains("match")
+                || query.contains("matches")
                 || query.contains("matching")
-                || query.contains("recommend companion");
+                || query.contains("compatible")
+                || query.contains("who can travel with me")
+                || query.contains("find companion")
+                || query.contains("find me a companion");
     }
 
     private boolean containsUserKeywords(String query) {
