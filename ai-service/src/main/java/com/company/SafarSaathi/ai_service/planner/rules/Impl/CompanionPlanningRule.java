@@ -37,5 +37,12 @@ public class CompanionPlanningRule implements PlanningRule {
                         .reason("Companion recommendations are required.")
                         .build()
         );
+
+
+    }
+
+    @Override
+    public int priority() {
+        return 10;
     }
 }

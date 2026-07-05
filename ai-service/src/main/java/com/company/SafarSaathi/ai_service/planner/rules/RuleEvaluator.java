@@ -1,7 +1,5 @@
 package com.company.SafarSaathi.ai_service.planner.rules;
 
-
-
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.planner.dto.PlannedTool;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -18,27 +17,31 @@ public class RuleEvaluator {
 
     private final PlanningRuleRegistry registry;
 
-    public List<PlannedTool> evaluate(
-            ChatRequest request
-    ) {
+    public List<PlannedTool> evaluate(ChatRequest request) {
 
-        List<PlannedTool> plannedTools =
-                new ArrayList<>();
+        List<PlannedTool> plannedTools = new ArrayList<>();
 
-        for (PlanningRule rule : registry.getRules()) {
+        registry.getRules()
+                .stream()
+                .sorted(
+                        Comparator.comparingInt(PlanningRule::priority)
+                                .reversed()
+                )
+                .forEach(rule -> {
 
-            if (rule.matches(request)) {
+                    if (rule.matches(request)) {
 
-                log.info(
-                        "Matched planning rule: {}",
-                        rule.getClass().getSimpleName()
-                );
+                        log.info(
+                                "Matched planning rule: {}",
+                                rule.getClass().getSimpleName()
+                        );
 
-                plannedTools.addAll(
-                        rule.evaluate(request)
-                );
-            }
-        }
+                        plannedTools.addAll(
+                                rule.evaluate(request)
+                        );
+                    }
+
+                });
 
         return plannedTools;
     }

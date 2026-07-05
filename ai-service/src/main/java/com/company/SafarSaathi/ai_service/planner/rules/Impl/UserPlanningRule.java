@@ -38,4 +38,9 @@ public class UserPlanningRule implements PlanningRule {
                         .build()
         );
     }
+
+    @Override
+    public int priority() {
+        return 10;
+    }
 }

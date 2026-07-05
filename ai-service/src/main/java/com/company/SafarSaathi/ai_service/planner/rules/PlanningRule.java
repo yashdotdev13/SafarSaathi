@@ -19,4 +19,7 @@ public interface PlanningRule {
      */
 
     List<PlannedTool> evaluate(ChatRequest request);
+
+
+    int priority();
 }
