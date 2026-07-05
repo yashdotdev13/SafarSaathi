@@ -4,7 +4,7 @@ import com.company.SafarSaathi.ai_service.tool.ToolResponse;
 
 import java.util.List;
 
-public interface ContextManager {
+public interface ContextMerger {
 
     String merge(List<ToolResponse> responses);
 }

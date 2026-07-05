@@ -1,7 +1,7 @@
 package com.company.SafarSaathi.ai_service.planner.context.Impl;
 
 
-import com.company.SafarSaathi.ai_service.planner.context.ContextManager;
+import com.company.SafarSaathi.ai_service.planner.context.ContextMerger;
 import com.company.SafarSaathi.ai_service.tool.ToolResponse;
 import com.company.SafarSaathi.ai_service.tool.formatter.ToolResultFormatter;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ContextManagerImpl implements ContextManager {
+public class ContextManagerImpl implements ContextMerger {
 
     private final ToolResultFormatter formatter;
 

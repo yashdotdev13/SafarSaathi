@@ -1,23 +1,27 @@
 package com.company.SafarSaathi.ai_service.orchestrator.Impl;
 
 
-import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
 import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionResult;
 import com.company.SafarSaathi.ai_service.intent.IntentDetectionService;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
+import com.company.SafarSaathi.ai_service.planner.AIPlanner;
+import com.company.SafarSaathi.ai_service.planner.context.ContextMerger;
+import com.company.SafarSaathi.ai_service.planner.dto.ExecutionPlan;
+import com.company.SafarSaathi.ai_service.planner.dto.PlannedTool;
 import com.company.SafarSaathi.ai_service.service.AIChatService;
 import com.company.SafarSaathi.ai_service.service.prompt.PromptEnrichmentService;
 import com.company.SafarSaathi.ai_service.tool.ToolExecutor;
 import com.company.SafarSaathi.ai_service.tool.ToolRequest;
 import com.company.SafarSaathi.ai_service.tool.ToolResponse;
-import com.company.SafarSaathi.ai_service.tool.ToolType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -29,6 +33,9 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
     private final AIChatService aiChatService;
     private final PromptEnrichmentService promptEnrichmentService;
     private final ConversationService conversationService;
+
+    private final AIPlanner aiPlanner;
+    private final ContextMerger contextMerger;
 
 
     @Override
@@ -77,28 +84,32 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
                 intent.getIntentType()
         );
 
-        ToolRequest toolRequest =
-                ToolRequest.builder()
-                        .toolType(
-                                ToolType.valueOf(
-                                        intent.getIntentType().name()
-                                )
-                        )
-                        .conversationId(
-                                request.getConversationId()
-                        )
-                        .query(
-                                request.getMessage()
-                        )
-                        .build();
+        ExecutionPlan executionPlan =
+                aiPlanner.createPlan(request);
 
-        ToolResponse toolResponse =
-                toolExecutor.execute(toolRequest);
+        List<ToolResponse> responses = new ArrayList<>();
+
+        for (PlannedTool plannedTool : executionPlan.getTools()) {
+
+            ToolRequest toolRequest =
+                    ToolRequest.builder()
+                            .toolType(plannedTool.getToolType())
+                            .conversationId(request.getConversationId())
+                            .query(request.getMessage())
+                            .build();
+
+            responses.add(
+                    toolExecutor.execute(toolRequest)
+            );
+        }
+
+        String mergedContext =
+                contextMerger.merge(responses);
 
         String enrichedPrompt =
                 promptEnrichmentService.enrich(
                         request,
-                        toolResponse
+                        mergedContext
                 );
 
         return aiChatService.chat(
