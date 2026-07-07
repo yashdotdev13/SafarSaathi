@@ -1,6 +1,5 @@
 package com.company.SafarSaathi.ai_service.context.model;
 
-
 import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
 import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessage;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
@@ -10,13 +9,15 @@ import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConversationContext {
 
-    private ChatRequest request;
+    private ChatRequest chatRequest;
+
     private Conversation conversation;
 
-    private List<ConversationMessage> conversationMessage;
+    private List<ConversationMessage> conversationHistory;
+
 }
