@@ -1,5 +1,7 @@
 package com.company.SafarSaathi.ai_service.orchestrator.Impl;
 
+import com.company.SafarSaathi.ai_service.context.model.ConversationContext;
+import com.company.SafarSaathi.ai_service.context.resolver.ConversationContextResolver;
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import com.company.SafarSaathi.ai_service.dtos.ChatResponse;
 import com.company.SafarSaathi.ai_service.orchestrator.AIOrchestratorService;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
+    private final ConversationContextResolver conversationContextResolver;
     private final AIPlanner aiPlanner;
     private final PlanExecutor planExecutor;
     private final ContextMerger contextMerger;
@@ -32,8 +35,11 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
 
         log.info("Processing request through AI Orchestrator.");
 
+        ConversationContext context =
+                conversationContextResolver.resolve(request);
+
         ExecutionPlan executionPlan =
-                aiPlanner.createPlan(request);
+                aiPlanner.createPlan(context);
 
         if (executionPlan.getTools().isEmpty()) {
 
