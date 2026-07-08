@@ -20,4 +20,6 @@ public class ConversationContext {
 
     private List<ConversationMessage> conversationHistory;
 
+    private ConversationState conversationState;
+
 }
