@@ -8,4 +8,12 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class ConversationState {
+
+    private String currentIntent;
+
+    private Long currentTripId;
+
+    private String currentDestination;
+
+    private Long currentCompanionId;
 }
