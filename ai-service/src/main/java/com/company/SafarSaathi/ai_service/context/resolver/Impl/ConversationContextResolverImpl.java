@@ -3,7 +3,9 @@ package com.company.SafarSaathi.ai_service.context.resolver.Impl;
 
 import com.company.SafarSaathi.ai_service.auth.UserContextHolder;
 import com.company.SafarSaathi.ai_service.context.model.ConversationContext;
+import com.company.SafarSaathi.ai_service.context.model.ConversationState;
 import com.company.SafarSaathi.ai_service.context.resolver.ConversationContextResolver;
+import com.company.SafarSaathi.ai_service.context.service.ConversationStateService;
 import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
 import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessage;
 import com.company.SafarSaathi.ai_service.conversation.service.ConversationService;
@@ -21,9 +23,11 @@ public class ConversationContextResolverImpl
         implements ConversationContextResolver {
 
     private final ConversationService conversationService;
+    private final ConversationStateService conversationStateService;
 
     @Override
     public ConversationContext resolve(ChatRequest request) {
+
 
         log.info("Resolving conversation context.");
 
@@ -50,16 +54,18 @@ public class ConversationContextResolverImpl
                 history.size()
         );
 
-        ConversationContext context =
-                ConversationContext.builder()
-                        .chatRequest(request)
-                        .conversation(conversation)
-                        .conversationHistory(history)
-                        .build();
+        ConversationContext context = ConversationContext.builder()
+                .chatRequest(request)
+                .conversation(conversation)
+                .conversationHistory(history)
+                .build();
 
-        log.info(
-                "Conversation context successfully created."
-        );
+        ConversationState state =
+                conversationStateService.buildState(context);
+
+        context.setConversationState(state);
+
+        log.info("Conversation context successfully created.");
 
         return context;
     }
