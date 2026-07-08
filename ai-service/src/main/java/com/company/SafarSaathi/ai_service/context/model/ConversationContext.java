@@ -5,6 +5,7 @@ import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessag
 import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -21,5 +22,8 @@ public class ConversationContext {
     private List<ConversationMessage> conversationHistory;
 
     private ConversationState conversationState;
+
+    @Builder.Default
+    private List<ResolvedEntity> resolvedEntities = new ArrayList<>();
 
 }
