@@ -1,9 +1,12 @@
 package com.company.SafarSaathi.ai_service.service.prompt.Impl;
 
-import com.company.SafarSaathi.ai_service.dtos.ChatRequest;
+import com.company.SafarSaathi.ai_service.context.model.ConversationContext;
+import com.company.SafarSaathi.ai_service.context.model.ResolvedEntity;
 import com.company.SafarSaathi.ai_service.service.prompt.PromptEnrichmentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -12,23 +15,58 @@ public class PromptEnrichmentServiceImpl
 
     @Override
     public String enrich(
-            ChatRequest request,
+            ConversationContext context,
             String mergedContext
     ) {
 
         log.info("Building enriched prompt.");
 
+        String conversationHistory =
+                context.getConversationHistory()
+                        .stream()
+                        .map(message ->
+                                message.getRole() + ": " + message.getContent())
+                        .collect(Collectors.joining("\n"));
+
+        String resolvedEntities =
+                context.getResolvedEntities()
+                        .stream()
+                        .map(ResolvedEntity::getType)
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", "));
+
         return """
                 You are SafarSaathi AI, an intelligent travel assistant.
 
                 ========================================
-                USER QUERY
+                CURRENT USER QUERY
                 ========================================
 
                 %s
 
                 ========================================
-                AVAILABLE CONTEXT
+                CONVERSATION HISTORY
+                ========================================
+
+                %s
+
+                ========================================
+                CONVERSATION STATE
+                ========================================
+
+                Current Intent      : %s
+                Current Trip Id     : %s
+                Current Destination : %s
+                Current Companion   : %s
+
+                ========================================
+                RESOLVED ENTITIES
+                ========================================
+
+                %s
+
+                ========================================
+                TOOL CONTEXT
                 ========================================
 
                 %s
@@ -37,16 +75,22 @@ public class PromptEnrichmentServiceImpl
                 INSTRUCTIONS
                 ========================================
 
-                - Answer ONLY using the provided context.
+                - Use the conversation history to understand follow-up questions.
+                - Prefer resolved entities and conversation state whenever available.
+                - Answer ONLY using the provided tool context.
                 - Never fabricate or assume information.
-                - If some information is unavailable, clearly state that.
-                - Present the response naturally and conversationally.
-                - Highlight important travel details whenever available.
-                - Do not expose raw JSON, Java objects, or internal implementation details.
-                - Keep the response concise, accurate, and user-friendly.
+                - If information is unavailable, clearly mention it.
+                - Keep responses conversational and natural.
+                - Do not expose internal implementation details.
                 """
                 .formatted(
-                        request.getMessage(),
+                        context.getChatRequest().getMessage(),
+                        conversationHistory,
+                        context.getConversationState().getCurrentIntent(),
+                        context.getConversationState().getCurrentTripId(),
+                        context.getConversationState().getCurrentDestination(),
+                        context.getConversationState().getCurrentCompanionId(),
+                        resolvedEntities.isBlank() ? "None" : resolvedEntities,
                         mergedContext
                 );
     }

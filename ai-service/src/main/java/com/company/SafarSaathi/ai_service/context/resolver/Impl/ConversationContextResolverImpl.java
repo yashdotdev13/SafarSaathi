@@ -5,6 +5,7 @@ import com.company.SafarSaathi.ai_service.auth.UserContextHolder;
 import com.company.SafarSaathi.ai_service.context.model.ConversationContext;
 import com.company.SafarSaathi.ai_service.context.model.ConversationState;
 import com.company.SafarSaathi.ai_service.context.resolver.ConversationContextResolver;
+import com.company.SafarSaathi.ai_service.context.resolver.EntityResolver;
 import com.company.SafarSaathi.ai_service.context.service.ConversationStateService;
 import com.company.SafarSaathi.ai_service.conversation.entity.Conversation;
 import com.company.SafarSaathi.ai_service.conversation.entity.ConversationMessage;
@@ -24,6 +25,7 @@ public class ConversationContextResolverImpl
 
     private final ConversationService conversationService;
     private final ConversationStateService conversationStateService;
+    private final EntityResolver entityResolver;
 
     @Override
     public ConversationContext resolve(ChatRequest request) {
@@ -65,7 +67,13 @@ public class ConversationContextResolverImpl
 
         context.setConversationState(state);
 
-        log.info("Conversation context successfully created.");
+        // Resolve entities from the current conversation
+        entityResolver.resolve(context);
+
+        log.info(
+                "Conversation context successfully created with {} resolved entit(y/ies).",
+                context.getResolvedEntities().size()
+        );
 
         return context;
     }

@@ -82,9 +82,12 @@ public class AIOrchestratorServiceImpl implements AIOrchestratorService {
         String mergedContext =
                 contextMerger.merge(responses);
 
+        ConversationContext context =
+                conversationContextResolver.resolve(request);
+
         String enrichedPrompt =
                 promptEnrichmentService.enrich(
-                        request,
+                        context,
                         mergedContext
                 );
 
