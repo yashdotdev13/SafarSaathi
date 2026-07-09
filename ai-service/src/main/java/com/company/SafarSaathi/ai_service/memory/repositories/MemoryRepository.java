@@ -1,7 +1,7 @@
 package com.company.SafarSaathi.ai_service.memory.repositories;
 
 
-import com.company.SafarSaathi.ai_service.memory.Memory;
+import com.company.SafarSaathi.ai_service.memory.entities.Memory;
 import com.company.SafarSaathi.ai_service.memory.enums.MemoryCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 

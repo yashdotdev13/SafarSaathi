@@ -1,4 +1,4 @@
-package com.company.SafarSaathi.ai_service.memory;
+package com.company.SafarSaathi.ai_service.memory.entities;
 
 
 import com.company.SafarSaathi.ai_service.memory.enums.MemoryCategory;
