@@ -1,0 +1,289 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yash8252
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db/db.sql:/docker-entrypoint-initdb.d/db.sql
+
+    networks:
+      - safarsaathi-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: kafka
+    restart: unless-stopped
+
+    ports:
+      - "9092:9092"
+
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CLUSTER_ID: safarsaathi-kraft-cluster
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+    networks:
+      - safarsaathi-network
+
+  discovery-server:
+    build:
+      context: .
+      dockerfile: discovery-server/Dockerfile
+
+    image: safarsaathi/discovery-server:1.0
+    container_name: discovery-server
+    restart: unless-stopped
+
+    ports:
+      - "8761:8761"
+
+    networks:
+      - safarsaathi-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+
+    image: safarsaathi/auth-service:1.0
+    container_name: auth-service
+    restart: unless-stopped
+
+    ports:
+      - "9070:9070"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+    networks:
+      - safarsaathi-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+
+    image: safarsaathi/user-service:1.0
+    container_name: user-service
+    restart: unless-stopped
+
+    ports:
+      - "9010:9010"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+    networks:
+      - safarsaathi-network
+
+  trip-service:
+    build:
+      context: .
+      dockerfile: trip-service/Dockerfile
+
+    image: safarsaathi/trip-service:1.0
+    container_name: trip-service
+    restart: unless-stopped
+
+    ports:
+      - "9030:9030"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      OPENCAGE_API_KEY: ${OPENCAGE_API_KEY}
+
+    networks:
+      - safarsaathi-network
+
+  companion-service:
+    build:
+      context: .
+      dockerfile: companion-service/Dockerfile
+
+    image: safarsaathi/companion-service:1.0
+    container_name: companion-service
+    restart: unless-stopped
+
+    ports:
+      - "9040:9040"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      trip-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+    networks:
+      - safarsaathi-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+
+    image: safarsaathi/notification-service:1.0
+    container_name: notification-service
+    restart: unless-stopped
+
+    ports:
+      - "9080:9080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      companion-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+    networks:
+      - safarsaathi-network
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+
+    image: safarsaathi/ai-service:1.0
+    container_name: ai-service
+    restart: unless-stopped
+
+    ports:
+      - "8086:8086"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      trip-service:
+        condition: service_started
+      companion-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+    networks:
+      - safarsaathi-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+
+    image: safarsaathi/api-gateway:1.0
+    container_name: api-gateway
+    restart: unless-stopped
+
+    ports:
+      - "8081:8081"
+
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      trip-service:
+        condition: service_started
+      companion-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+    networks:
+      - safarsaathi-network
+
+networks:
+  safarsaathi-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  kafka-data:
