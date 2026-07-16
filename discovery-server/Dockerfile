@@ -1,16 +1,11 @@
-
 FROM maven:3.9.8-eclipse-temurin-21 AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-COPY pom.xml .
+# Copy discovery-server project
+COPY discovery-server ./discovery-server
 
-
-RUN mvn dependency:go-offline
-
-
-COPY src ./src
-
+WORKDIR /build/discovery-server
 
 RUN mvn clean package -DskipTests
 
@@ -18,8 +13,7 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /build/discovery-server/target/*.jar app.jar
 
 EXPOSE 8761
 

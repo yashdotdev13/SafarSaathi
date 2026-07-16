@@ -1,0 +1,52 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - api-gateway:8081
+
+  - job_name: 'discovery-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - discovery-server:8761
+
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - auth-service:9070
+
+  - job_name: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - user-service:9010
+
+  - job_name: 'trip-service'
+    metrics_path: '/trip/actuator/prometheus'
+    static_configs:
+      - targets:
+          - trip-service:9030
+
+  - job_name: 'companion-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - companion-service:9040
+
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - notification-service:9080
+
+  - job_name: 'ai-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - ai-service:8086
