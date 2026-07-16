@@ -18,7 +18,6 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
         </processorPath>
         <module name="companion-service" />
-        <module name="bot-service" />
         <module name="trip-service" />
         <module name="auth-service" />
         <module name="api-gateway" />
@@ -27,6 +26,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="bot-service" target="21" />
       <module name="chat-service" target="21" />
       <module name="matching-service" target="21" />
     </bytecodeTargetLevel>

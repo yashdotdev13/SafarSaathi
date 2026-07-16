@@ -1,0 +1,96 @@
+jwt:
+  secretKey: mysupersecurekeyformysafarsaathijwt1234567890abcdefABCDEF1234567890
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+
+      routes:
+
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: AuthenticationFilter
+
+        - id: trip-service
+          uri: lb://trip-service
+          predicates:
+            - Path=/api/v1/trip/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+        - id: companion-service
+          uri: lb://companion-service
+          predicates:
+            - Path=/api/v1/companions/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: AuthenticationFilter
+
+        - id: Bot-service
+          uri: lb://Bot-service
+          predicates:
+            - Path=/api/v4/bot/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - StripPrefix=2
+            - name: AuthenticationFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    prefer-ip-address: true
+    hostname: api-gateway
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
