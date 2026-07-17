@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: trip-service
+  namespace: safarsaathi
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: trip-service
+
+  template:
+    metadata:
+      labels:
+        app: trip-service
+
+    spec:
+      containers:
+        - name: trip-service
+
+          image: yash01er/safarsaathi-trip-service:1.0
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 9030
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+
+            - name: OPENCAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: trip-service-secret
+                  key: OPENCAGE_API_KEY
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9030
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9030
+            initialDelaySeconds: 60
+            periodSeconds: 20

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: ai-service
+  namespace: safarsaathi
+
+spec:
+  selector:
+    app: ai-service
+
+  ports:
+    - port: 8086
+      targetPort: 8086
+
+  type: ClusterIP

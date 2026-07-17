@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: companion-service
+  namespace: safarsaathi
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: companion-service
+
+  template:
+    metadata:
+      labels:
+        app: companion-service
+
+    spec:
+      containers:
+        - name: companion-service
+
+          image: yash01er/safarsaathi-companion-service:1.0
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 9040
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9040
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9040
+            initialDelaySeconds: 60
+            periodSeconds: 20

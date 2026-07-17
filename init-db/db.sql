@@ -1,5 +1,3 @@
-CREATE DATABASE userdb_safarsaathi;
-
 CREATE DATABASE safar_userdb;
 
 CREATE DATABASE safar_tripdb;

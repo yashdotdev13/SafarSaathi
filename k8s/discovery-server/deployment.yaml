@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: discovery-server
+  namespace: safarsaathi
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: discovery-server
+
+  template:
+    metadata:
+      labels:
+        app: discovery-server
+
+    spec:
+      containers:
+        - name: discovery-server
+
+          image: yash01er/safarsaathi-discovery-server:1.0
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 8761
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 40
+            periodSeconds: 15
