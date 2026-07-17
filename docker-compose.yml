@@ -338,6 +338,18 @@ services:
       - safarsaathi-network
 
 
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    restart: unless-stopped
+
+    ports:
+      - "9411:9411"
+
+    networks:
+      - safarsaathi-network
+
+
 
 networks:
   safarsaathi-network:

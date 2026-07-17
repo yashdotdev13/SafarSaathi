@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: postgres-config
+  namespace: safarsaathi
+
+data:
+  POSTGRES_DB: userdb_safarsaathi
+  POSTGRES_USER: postgres

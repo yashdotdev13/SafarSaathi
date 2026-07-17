@@ -96,6 +96,21 @@ logging:
     org.springframework.cloud.gateway: DEBUG
 
 
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+
+    container_name: zipkin
+
+    restart: unless-stopped
+
+    ports:
+      - "9411:9411"
+
+    networks:
+      - safarsaathi-network
+
+
 management:
   endpoints:
     web:
@@ -116,3 +131,13 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+
