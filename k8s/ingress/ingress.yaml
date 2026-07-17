@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: safarsaathi-ingress
+  namespace: safarsaathi
+
+spec:
+  ingressClassName: nginx
+
+  rules:
+    - host: safarsaathi.local
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8081
