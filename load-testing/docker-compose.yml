@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+
+  k6:
+    image: grafana/k6:latest
+
+    container_name: safarsaathi-k6
+
+    volumes:
+      - ./scripts:/scripts
+      - ./data:/data
+
+    env_file:
+      - .env
+
+    working_dir: /scripts
+
+    network_mode: host
