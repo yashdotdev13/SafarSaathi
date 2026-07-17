@@ -37,7 +37,7 @@ data:
           - targets: ["user-service:9010"]
 
       - job_name: "trip-service"
-        metrics_path: "/actuator/prometheus"
+        metrics_path: "/trip/actuator/prometheus"
 
         static_configs:
           - targets: ["trip-service:9030"]
