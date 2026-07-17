@@ -790,17 +790,8 @@ Microservices
 
 ---
 
-## 🚧 Currently Working On
 
-- Next.js Frontend
-- React Dashboard
-- AI Chat Interface
-- Trip Management UI
-- Companion Matching UI
-
----
-
-## 📌 Future Roadmap
+### DevOpa and Cloud
 
 - Docker
 - Kubernetes
