@@ -16,17 +16,14 @@ spec:
     metadata:
       labels:
         app: user-service
-
     spec:
       containers:
         - name: user-service
-
           image: yash01er/safarsaathi-user-service:1.0
           imagePullPolicy: Always
 
           ports:
             - containerPort: 9010
-
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: docker

@@ -4,19 +4,16 @@ kind: Deployment
 metadata:
   name: postgres
   namespace: safarsaathi
-
 spec:
   replicas: 1
 
   selector:
     matchLabels:
       app: postgres
-
   template:
     metadata:
       labels:
         app: postgres
-
     spec:
       containers:
         - name: postgres
@@ -43,8 +40,7 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
-
-            # IMPORTANT: Required for EKS/EBS
+                
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
 
