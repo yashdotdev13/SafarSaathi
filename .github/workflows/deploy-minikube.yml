@@ -1,0 +1,122 @@
+name: Deploy SafarSaathi to Minikube
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Published image tag, e.g. sha-<40-character-commit-SHA>"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safarsaathi-minikube-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy existing Kubernetes workloads
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+
+    steps:
+      - name: Validate Minikube target and deployments
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ($env:IMAGE_TAG -notmatch '^sha-[0-9a-f]{40}$') {
+            throw "Invalid IMAGE_TAG. Expected sha- followed by 40 lowercase hexadecimal characters."
+          }
+
+          if (-not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
+            throw "kubectl is not installed or is not available on PATH."
+          }
+
+          $context = (& kubectl config current-context).Trim()
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to read the current Kubernetes context."
+          }
+
+          if ($context -ne 'minikube') {
+            throw "Expected the minikube context, but found '$context'. Deployment cancelled."
+          }
+
+          & kubectl get namespace safarsaathi
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Namespace safarsaathi is missing from Minikube. No workloads were changed."
+          }
+
+          $services = @(
+            'discovery-server',
+            'auth-service',
+            'user-service',
+            'trip-service',
+            'companion-service',
+            'notification-service',
+            'ai-service',
+            'api-gateway'
+          )
+
+          foreach ($service in $services) {
+            & kubectl get deployment $service -n safarsaathi
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "Deployment '$service' is missing. No image updates were started."
+            }
+          }
+
+      - name: Update images and verify rollouts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $services = @(
+            'discovery-server',
+            'auth-service',
+            'user-service',
+            'trip-service',
+            'companion-service',
+            'notification-service',
+            'ai-service',
+            'api-gateway'
+          )
+
+          foreach ($service in $services) {
+            $image = "yash01er/safarsaathi-${service}:$env:IMAGE_TAG"
+
+            Write-Host "Deploying $image"
+
+            & kubectl set image "deployment/$service" `
+              "${service}=$image" `
+              -n safarsaathi
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to update image for $service."
+            }
+
+            & kubectl rollout status "deployment/$service" `
+              -n safarsaathi `
+              --timeout=180s
+
+            if ($LASTEXITCODE -ne 0) {
+              Write-Warning "Rollout failed for $service. Attempting rollback."
+
+              & kubectl rollout undo "deployment/$service" -n safarsaathi
+
+              throw "Rollout failed for $service. Check pod events and logs."
+            }
+          }
+
+      - name: Show deployment status
+        shell: pwsh
+        run: |
+          kubectl get deployments,pods -n safarsaathi
