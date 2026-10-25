@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+**/.idea
+
+**/target
+
+.env
+**/.env
+
+*.log
+**/*.log
+
+load-testing/results
