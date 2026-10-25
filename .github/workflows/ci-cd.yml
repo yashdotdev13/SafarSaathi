@@ -52,7 +52,6 @@ jobs:
       OPENCAGE_API_KEY: ci-test
       GEMINI_API_KEY: ci-test
 
-      EUREKA_CLIENT_ENABLED: "false"
       SPRING_KAFKA_LISTENER_AUTO_STARTUP: "false"
 
     steps:
